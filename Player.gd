@@ -2,6 +2,7 @@ extends KinematicBody2D
 
 export(PackedScene) var BulletScene
 export var speed = 200
+export var hp = 30
 
 onready var aim = $Aim
 
@@ -36,7 +37,19 @@ func shoot():
 	bullet.global_position = aim.global_position
 	var dir = (get_global_mouse_position() - bullet.global_position).normalized()
 	bullet.direction = dir
+	bullet.owner_node = self
 
+func take_damage(amount):
+	hp -= amount
+	print("Player HP: ", hp)
+
+	if hp <= 0:
+		die()
+
+func die():
+	print("Player died")
+	get_tree().reload_current_scene()
+	
 #func shoot():
 #	var bullet = BulletScene.instance()
 #	get_parent().add_child(bullet)

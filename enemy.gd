@@ -1,25 +1,71 @@
 extends KinematicBody2D
 
-var speed = 80
-var hp = 3
+export var speed = 80
+export var hp = 3
+
+export var vision_distance = 500
+export var vision_angle = 103
+
+export(PackedScene) var BulletScene
+export var shoot_cooldown = 1.0
+
 var player = null
+var shoot_timer = 0.0
 
 func _ready():
-	# Ищем игрока на сцене по имени группы
-	player = get_tree().get_nodes_in_group("player")[0]
+	var players = get_tree().get_nodes_in_group("player")
+
+	if players.size() > 0:
+		player = players[0]
+	else:
+		print("Player not found in group 'player'")
 
 func _physics_process(delta):
 	if player == null:
 		return
-	
-	# Идём в сторону игрока
+
+	shoot_timer -= delta
+
+	if can_see_player():
+		chase_player()
+
+		if shoot_timer <= 0:
+			shoot_at_player()
+			shoot_timer = shoot_cooldown
+
+func shoot_at_player():
+	if BulletScene == null:
+		print("Enemy BulletScene не назначена!")
+		return
+
+	var bullet = BulletScene.instance()
+	get_parent().add_child(bullet)
+
+	bullet.global_position = global_position
+	bullet.direction = (player.global_position - global_position).normalized()
+	bullet.owner_node = self
+
+func chase_player():
 	var direction = (player.global_position - global_position).normalized()
 	move_and_slide(direction * speed)
-	
-	# Смотрим на игрока
 	look_at(player.global_position)
+
+func can_see_player() -> bool:
+	var to_player = player.global_position - global_position
+
+	if to_player.length() > vision_distance:
+		return false
+
+	var forward = Vector2.RIGHT.rotated(rotation)
+	var angle_to_player = rad2deg(forward.angle_to(to_player.normalized()))
+
+	if abs(angle_to_player) > vision_angle / 2:
+		return false
+
+	return true
 
 func take_damage(amount):
 	hp -= amount
+
 	if hp <= 0:
-		queue_free()  # Удаляем врага
+		queue_free()
