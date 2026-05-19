@@ -8,6 +8,7 @@ export var vision_angle = 103
 
 export(PackedScene) var BulletScene
 export var shoot_cooldown = 1.0
+export var attack_distance = 350
 export(PackedScene) var DamageNumberScene
 
 var player = null

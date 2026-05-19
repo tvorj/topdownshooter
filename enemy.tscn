@@ -16,6 +16,6 @@ DamageNumberScene = ExtResource( 4 )
 [node name="Sprite" type="Sprite" parent="."]
 texture = ExtResource( 1 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." groups=["enemy"]]
 position = Vector2( 0, -0.5 )
 shape = SubResource( 1 )
