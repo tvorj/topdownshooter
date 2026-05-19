@@ -1,13 +1,16 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Player.gd" type="Script" id=1]
 [ext_resource path="res://Bullet.tscn" type="PackedScene" id=2]
+[ext_resource path="res://DamageNumber.tscn" type="PackedScene" id=3]
 
 [sub_resource type="RectangleShape2D" id=1]
 
 [node name="Player" type="KinematicBody2D" groups=["player"]]
+position = Vector2( 400, 300 )
 script = ExtResource( 1 )
 BulletScene = ExtResource( 2 )
+DamageNumberScene = ExtResource( 3 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )
