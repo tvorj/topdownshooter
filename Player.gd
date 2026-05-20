@@ -9,7 +9,7 @@ export var speed = 200
 export var hp = 10
 export var max_hp = 10
 export var armor = 0
-export var max_armor = 10
+export var max_armor = 5
 
 # --- Vision ---
 export var vision_distance = 5000
@@ -51,6 +51,10 @@ onready var ammo_text = get_node_or_null("../UI/Hud/AmmoRow/AmmoText")
 onready var ammo_icons = get_node_or_null("../UI/Hud/AmmoRow/AmmoIcons")
 onready var armor_text = get_node_or_null("../UI/Hud/ArmorRow/ArmorText")
 onready var armor_bar_fill = get_node_or_null("../UI/Hud/ArmorRow/ArmorBarBg/ArmorBarFill")
+onready var armor_row = get_node_or_null("../UI/Hud/ArmorRow")
+onready var hud_root = get_node_or_null("../UI/Hud")
+onready var hud_divider = get_node_or_null("../UI/Hud/RowDivider")
+onready var hud_ammo_row = get_node_or_null("../UI/Hud/AmmoRow")
 
 # --- Network sync ---
 puppet var puppet_pos = Vector2.ZERO
@@ -177,6 +181,31 @@ func update_armor_ui():
 		armor_bar_fill.anchor_right = ratio
 		armor_bar_fill.margin_right = 0
 		armor_bar_fill.color = ARMOR_COLOR
+	_refresh_armor_row_visibility()
+
+
+func _refresh_armor_row_visibility():
+	var has_armor = armor > 0
+	if armor_row:
+		armor_row.visible = has_armor
+	if has_armor:
+		if hud_divider:
+			hud_divider.margin_top = 90.0
+			hud_divider.margin_bottom = 91.0
+		if hud_ammo_row:
+			hud_ammo_row.margin_top = 100.0
+			hud_ammo_row.margin_bottom = 128.0
+		if hud_root:
+			hud_root.margin_bottom = 168.0
+	else:
+		if hud_divider:
+			hud_divider.margin_top = 52.0
+			hud_divider.margin_bottom = 53.0
+		if hud_ammo_row:
+			hud_ammo_row.margin_top = 62.0
+			hud_ammo_row.margin_bottom = 90.0
+		if hud_root:
+			hud_root.margin_bottom = 130.0
 
 
 func update_ammo_ui():
@@ -390,6 +419,8 @@ remote func sync_armor_hp(new_armor, new_hp, amount):
 func _apply_armor_hp(new_armor, new_hp, amount):
 	if is_dead:
 		return
+	var old_armor = armor
+	var old_hp = hp
 	if amount > 0 and _is_local():
 		stats.damage_taken += amount
 	armor = new_armor
@@ -397,9 +428,12 @@ func _apply_armor_hp(new_armor, new_hp, amount):
 	update_hp_ui()
 	update_armor_ui()
 	if DamageNumberScene and amount > 0:
+		var hp_lost = old_hp - new_hp
+		var armor_used = old_armor - new_armor
+		var hit_armor_only = hp_lost <= 0 and armor_used > 0
 		var dmg = DamageNumberScene.instance()
 		get_parent().add_child(dmg)
-		dmg.setup(amount, global_position)
+		dmg.setup(amount, global_position, hit_armor_only)
 	if hp <= 0:
 		die()
 

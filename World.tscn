@@ -105,11 +105,11 @@ custom_constants/separation = 10
 
 [node name="HpIcon" type="Label" parent="UI/Hud/HpRow"]
 margin_top = 6.0
-margin_right = 24.0
+margin_right = 60.0
 margin_bottom = 22.0
-rect_min_size = Vector2( 24, 0 )
+rect_min_size = Vector2( 60, 0 )
 custom_colors/font_color = Color( 1, 0.388, 0.388, 1 )
-text = "HP"
+text = "HEALTH"
 
 [node name="HpBarBg" type="ColorRect" parent="UI/Hud/HpRow"]
 margin_left = 34.0
@@ -159,11 +159,11 @@ custom_constants/separation = 10
 
 [node name="ArmorIcon" type="Label" parent="UI/Hud/ArmorRow"]
 margin_top = 6.0
-margin_right = 24.0
+margin_right = 60.0
 margin_bottom = 22.0
-rect_min_size = Vector2( 24, 0 )
+rect_min_size = Vector2( 60, 0 )
 custom_colors/font_color = Color( 0.345, 0.65, 1, 1 )
-text = "AR"
+text = "ARMOR"
 
 [node name="ArmorBarBg" type="ColorRect" parent="UI/Hud/ArmorRow"]
 margin_left = 34.0
@@ -202,7 +202,7 @@ margin_top = 6.0
 margin_right = 292.0
 margin_bottom = 22.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
-text = "0 / 10"
+text = "0 / 5"
 
 [node name="RowDivider" type="ColorRect" parent="UI/Hud"]
 margin_left = 14.0
@@ -220,11 +220,11 @@ custom_constants/separation = 10
 
 [node name="AmmoIcon" type="Label" parent="UI/Hud/AmmoRow"]
 margin_top = 6.0
-margin_right = 24.0
+margin_right = 60.0
 margin_bottom = 22.0
-rect_min_size = Vector2( 24, 0 )
+rect_min_size = Vector2( 60, 0 )
 custom_colors/font_color = Color( 1, 0.65, 0.243, 1 )
-text = "AM"
+text = "AMMO"
 
 [node name="AmmoIcons" type="HBoxContainer" parent="UI/Hud/AmmoRow"]
 margin_left = 34.0
