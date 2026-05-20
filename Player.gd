@@ -29,6 +29,7 @@ var shoot_timer = 0.0
 
 # --- State ---
 var is_dead = false
+var _fov_points := PoolVector2Array()
 
 # --- Stats ---
 var stats = {
@@ -103,6 +104,7 @@ func _process(delta):
 		return
 
 	look_at(get_global_mouse_position())
+	_update_fov_polygon()
 	update()
 	update_enemy_visibility()
 
@@ -364,34 +366,42 @@ func die():
 
 # --- Vision / FOV ---
 
-func _draw():
+func _update_fov_polygon():
 	if not _is_local():
+		_fov_points = PoolVector2Array()
 		return
 
-	var half_angle = deg2rad(vision_angle / 2)
-	var points = [Vector2.ZERO]
+	var half_angle = deg2rad(vision_angle / 2.0)
+	var steps = 30
+	var space_state = get_world_2d().direct_space_state
 
-	var steps = 20
+	var exclude = [self]
+	for e in get_tree().get_nodes_in_group("enemy"):
+		exclude.append(e)
+	for p in get_tree().get_nodes_in_group("player"):
+		if p != self:
+			exclude.append(p)
 
+	var pts = PoolVector2Array([Vector2.ZERO])
 	for i in range(steps + 1):
-		var angle = -half_angle + (half_angle * 2 / steps) * i
-		points.append(Vector2.RIGHT.rotated(angle) * vision_distance)
+		var local_angle = -half_angle + (half_angle * 2.0 / steps) * i
+		var world_dir = Vector2.RIGHT.rotated(rotation + local_angle)
+		var world_end = global_position + world_dir * vision_distance
+		var hit = space_state.intersect_ray(global_position, world_end, exclude)
+		if hit:
+			pts.append((hit.position - global_position).rotated(-rotation))
+		else:
+			pts.append(Vector2.RIGHT.rotated(local_angle) * vision_distance)
+	pts.append(Vector2.ZERO)
+	_fov_points = pts
 
-	points.append(Vector2.ZERO)
 
-	draw_colored_polygon(PoolVector2Array(points), Color(1, 1, 0, 0.1))
-	draw_line(
-		Vector2.ZERO,
-		Vector2.RIGHT.rotated(-half_angle) * vision_distance,
-		Color(1, 1, 0, 0.3),
-		1.0
-	)
-	draw_line(
-		Vector2.ZERO,
-		Vector2.RIGHT.rotated(half_angle) * vision_distance,
-		Color(1, 1, 0, 0.3),
-		1.0
-	)
+func _draw():
+	if not _is_local() or _fov_points.size() < 3:
+		return
+	draw_colored_polygon(_fov_points, Color(1, 1, 0, 0.1))
+	draw_line(Vector2.ZERO, _fov_points[1], Color(1, 1, 0, 0.3), 1.0)
+	draw_line(Vector2.ZERO, _fov_points[_fov_points.size() - 2], Color(1, 1, 0, 0.3), 1.0)
 
 
 func update_enemy_visibility():
