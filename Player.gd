@@ -7,8 +7,17 @@ export(PackedScene) var DamageNumberScene
 export var vision_distance = 400
 export var vision_angle = 120
 var aim_angle = 0.0
+onready var hp_label = get_node_or_null("../UI/HpLabel")
+var is_dead = false
 
 onready var aim = $Aim
+
+func update_hp_ui():
+	if hp_label:
+		hp_label.text = "HP: " + str(hp)
+
+func _ready():
+	update_hp_ui()
 
 func _physics_process(delta):
 	var direction = Vector2.ZERO
@@ -37,6 +46,8 @@ func _process(delta):
 	
 	if Input.is_action_just_pressed("click"):
 		shoot()
+	if hp <= 0 and Input.is_key_pressed(KEY_R):
+		get_tree().reload_current_scene()
 
 func shoot():
 	print("shoot called!")  # проверка что функция вызывается
@@ -51,21 +62,42 @@ func shoot():
 	bullet.owner_node = self
 
 func take_damage(amount):
+	if is_dead:
+		return
+
 	hp -= amount
+
+	if hp < 0:
+		hp = 0
+
+	update_hp_ui()
+
 	print("Player HP: ", hp)
 
 	if DamageNumberScene:
 		var dmg = DamageNumberScene.instance()
 		get_parent().add_child(dmg)
 		dmg.setup(amount, global_position)
-	
+
 	if hp <= 0:
 		die()
 
 func die():
+	if is_dead:
+		return
+
+	is_dead = true
 	print("Player died")
-	get_tree().reload_current_scene()
-	
+
+	var lose_label = get_node_or_null("../UI/LoseLabel")
+	if lose_label:
+		lose_label.visible = true
+
+	var world = get_parent()
+	if world and world.has_method("on_player_died"):
+		world.on_player_died()
+
+	set_physics_process(false)
 #func shoot():
 #	var bullet = BulletScene.instance()
 #	get_parent().add_child(bullet)

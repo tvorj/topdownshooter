@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://enemy.tscn" type="PackedScene" id=2]
 [ext_resource path="res://wall.png" type="Texture" id=3]
+[ext_resource path="res://World.gd" type="Script" id=4]
 
 [sub_resource type="ConvexPolygonShape2D" id=3]
 points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
@@ -65,6 +66,7 @@ points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
 0/z_index = 0
 
 [node name="World" type="Node2D"]
+script = ExtResource( 4 )
 
 [node name="TileMap" type="TileMap" parent="."]
 tile_set = SubResource( 2 )
@@ -72,6 +74,40 @@ format = 1
 tile_data = PoolIntArray( 196612, 0, 0, 196613, 0, 0, 196614, 0, 0, 196615, 0, 0, 196616, 0, 0, 196617, 0, 0, 196618, 0, 0, 196619, 0, 0, 196620, 0, 0, 262147, 0, 0, 262151, 0, 0, 262156, 0, 0, 327683, 0, 0, 327687, 0, 0, 327692, 0, 0, 393219, 0, 0, 393223, 0, 0, 393228, 0, 0, 458755, 0, 0, 458756, 0, 0, 458757, 0, 0, 458758, 0, 0, 458759, 0, 0, 458760, 0, 0, 458761, 0, 0, 458762, 0, 0, 458763, 0, 0, 458764, 0, 0 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
+DamageNumberScene = null
 
 [node name="enemy" parent="." instance=ExtResource( 2 )]
 position = Vector2( 699, 400 )
+
+[node name="enemy2" parent="." instance=ExtResource( 2 )]
+position = Vector2( 872, 484 )
+
+[node name="enemy3" parent="." instance=ExtResource( 2 )]
+position = Vector2( 850, 165 )
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HpLabel" type="Label" parent="UI"]
+margin_left = 20.0
+margin_top = 30.0
+margin_right = 62.0
+margin_bottom = 44.0
+text = "HP: 30"
+
+[node name="LoseLabel" type="Label" parent="UI"]
+visible = false
+margin_left = 400.0
+margin_top = 250.0
+margin_right = 464.0
+margin_bottom = 264.0
+text = "YOU DIED
+Press R to restart"
+
+[node name="WinLabel" type="Label" parent="UI"]
+visible = false
+margin_left = 400.0
+margin_top = 250.0
+margin_right = 510.0
+margin_bottom = 281.0
+text = "YOU WIN
+Press R to restart"
