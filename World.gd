@@ -39,6 +39,7 @@ var initial_enemy_count = 0
 
 func _ready():
 	_style_game_over_screen()
+	_build_map()
 	if GameState.is_pvp():
 		NetworkManager.connect("opponent_left", self, "_on_opponent_left")
 		_setup_pvp()
@@ -194,6 +195,60 @@ func _on_PlayAgainBtn_pressed():
 
 func _on_MainMenuBtn_pressed():
 	_go_to_menu()
+
+
+# --- Map builder ---
+
+func _build_map():
+	var tm = $TileMap
+	tm.clear()
+
+	# Outer border
+	_wall_rect(tm, 0, 0, 31, 0)
+	_wall_rect(tm, 0, 17, 31, 17)
+	_wall_rect(tm, 0, 0, 0, 17)
+	_wall_rect(tm, 31, 0, 31, 17)
+
+	# Left divider — passage open at y=6..11
+	_wall_rect(tm, 7, 1, 7, 5)
+	_wall_rect(tm, 7, 12, 7, 16)
+
+	# Right divider — passage open at y=6..11
+	_wall_rect(tm, 24, 1, 24, 5)
+	_wall_rect(tm, 24, 12, 24, 16)
+
+	# Top-left L-cover (opens toward bottom-right)
+	_wall_rect(tm, 10, 4, 10, 6)
+	_wall_rect(tm, 10, 4, 11, 4)
+
+	# Top-right L-cover (opens toward bottom-left)
+	_wall_rect(tm, 20, 4, 21, 4)
+	_wall_rect(tm, 21, 4, 21, 6)
+
+	# Bottom-left L-cover (opens toward top-right)
+	_wall_rect(tm, 10, 11, 10, 13)
+	_wall_rect(tm, 10, 13, 11, 13)
+
+	# Bottom-right L-cover (opens toward top-left)
+	_wall_rect(tm, 22, 11, 22, 13)
+	_wall_rect(tm, 22, 13, 23, 13)
+
+	# Center pillar
+	_wall_rect(tm, 15, 8, 16, 9)
+
+	# Top cover strips
+	_wall_rect(tm, 13, 3, 14, 3)
+	_wall_rect(tm, 17, 3, 18, 3)
+
+	# Bottom cover strips
+	_wall_rect(tm, 13, 14, 14, 14)
+	_wall_rect(tm, 17, 14, 18, 14)
+
+
+func _wall_rect(tm, x1, y1, x2, y2):
+	for x in range(x1, x2 + 1):
+		for y in range(y1, y2 + 1):
+			tm.set_cell(x, y, 0)
 
 
 # --- Styling ---
