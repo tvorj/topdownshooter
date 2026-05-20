@@ -24,8 +24,21 @@ onready var quit_btn = $Center/Card/Margin/VBox/IdleContent/QuitBtn
 onready var cancel_btn = $Center/Card/Margin/VBox/ConnectingContent/CancelBtn
 onready var title_label = $Center/Card/Margin/VBox/Title
 onready var connecting_title = $Center/Card/Margin/VBox/ConnectingContent/ConnectingTitle
+onready var tracer_layer = $Tracers
+onready var spinner = $Center/Card/Margin/VBox/ConnectingContent/SpinnerHolder/Spinner
+
+const TRACER_COLOR = Color(1.0, 0.65, 0.243, 0.65)
+const BG_LINE_COLOR = Color(1.0, 0.65, 0.243, 0.08)
+const BG_LINE_COUNT = 7
+var _tracers = []
+var _bg_lines = []
+var _tracer_timer = 0.0
+var _spinner_angle = 0.0
+var _dot_timer = 0.0
+var _connect_base_msg = ""
 
 func _ready():
+	randomize()
 	NetworkManager.connect("join_failed", self, "_on_join_failed")
 	NetworkManager.connect("game_started", self, "_on_game_started")
 	NetworkManager.leave()
@@ -36,8 +49,133 @@ func _ready():
 	_style_button(join_btn, false)
 	_style_button(quit_btn, false, true)
 	_style_button(cancel_btn, false, true)
+	for b in [single_btn, host_btn, join_btn, quit_btn, cancel_btn]:
+		_add_hover_scale(b)
 	call_deferred("_scale_titles")
+	call_deferred("_spawn_background_lines")
 	_show_idle()
+
+
+func _input(event):
+	if event is InputEventMouseButton and event.pressed:
+		if ip_edit and ip_edit.has_focus():
+			if not ip_edit.get_global_rect().has_point(event.global_position):
+				ip_edit.release_focus()
+	elif event is InputEventKey and event.pressed and event.scancode == KEY_ESCAPE:
+		if ip_edit and ip_edit.has_focus():
+			ip_edit.release_focus()
+
+
+func _process(delta):
+	_update_bg_lines(delta)
+	_update_tracers(delta)
+	_maybe_spawn_tracer(delta)
+	if connecting_content.visible:
+		_spinner_angle += delta * 360.0
+		if spinner:
+			spinner.rect_rotation = _spinner_angle
+		_dot_timer += delta
+		if _dot_timer >= 0.4:
+			_dot_timer = 0.0
+			var dots = int((OS.get_ticks_msec() / 400) % 4)
+			if _connect_base_msg != "":
+				status_label.text = _connect_base_msg + ".".repeat(dots)
+
+
+# --- Background horizontal scrolling lines ---
+
+func _spawn_background_lines():
+	if tracer_layer == null:
+		return
+	var vp = get_viewport_rect().size
+	for i in range(BG_LINE_COUNT):
+		var line = ColorRect.new()
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		line.rect_size = Vector2(vp.x, 1)
+		line.color = BG_LINE_COLOR
+		tracer_layer.add_child(line)
+		var y = (vp.y / float(BG_LINE_COUNT)) * i + rand_range(-30, 30)
+		line.rect_position = Vector2(0, y)
+		_bg_lines.append({
+			"node": line,
+			"speed": rand_range(25.0, 60.0),
+		})
+
+
+func _update_bg_lines(delta):
+	var vp = get_viewport_rect().size
+	for line in _bg_lines:
+		line.node.rect_position.y += line.speed * delta
+		if line.node.rect_position.y > vp.y:
+			line.node.rect_position.y = -1
+			line.node.rect_size.x = vp.x
+
+
+# --- Tracers (angled bullets streaking across screen) ---
+
+func _maybe_spawn_tracer(delta):
+	_tracer_timer -= delta
+	if _tracer_timer > 0:
+		return
+	_tracer_timer = rand_range(0.12, 0.45)
+	_spawn_tracer()
+
+
+func _spawn_tracer():
+	if tracer_layer == null:
+		return
+	var vp = get_viewport_rect().size
+	var t = ColorRect.new()
+	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var length = rand_range(70, 150)
+	t.rect_size = Vector2(length, 3)
+	t.color = TRACER_COLOR
+	t.rect_pivot_offset = Vector2(length / 2.0, 1.5)
+
+	var from_left = randi() % 2 == 0
+	var tilt = rand_range(-25.0, 25.0)
+	var angle_deg = tilt if from_left else (180.0 - tilt)
+	t.rect_rotation = angle_deg
+
+	var dir = Vector2.RIGHT.rotated(deg2rad(angle_deg))
+	var speed = rand_range(900, 1600)
+	var y = rand_range(vp.y * 0.18, vp.y * 0.88)
+	var x = -length if from_left else vp.x + length
+	t.rect_position = Vector2(x, y) - t.rect_pivot_offset
+
+	tracer_layer.add_child(t)
+	_tracers.append({"node": t, "vel": dir * speed, "len": length})
+
+
+func _update_tracers(delta):
+	var vp = get_viewport_rect().size
+	var dead = []
+	for t in _tracers:
+		t.node.rect_position += t.vel * delta
+		var c = t.node.rect_position + t.node.rect_pivot_offset
+		if c.x > vp.x + t.len or c.x < -t.len or c.y > vp.y + 200 or c.y < -200:
+			t.node.queue_free()
+			dead.append(t)
+	for td in dead:
+		_tracers.erase(td)
+
+
+# --- Hover scale ---
+
+func _add_hover_scale(btn):
+	btn.rect_pivot_offset = btn.rect_size / 2.0
+	btn.connect("mouse_entered", self, "_on_btn_hover", [btn, true])
+	btn.connect("mouse_exited", self, "_on_btn_hover", [btn, false])
+	btn.connect("resized", self, "_on_btn_resized", [btn])
+
+
+func _on_btn_resized(btn):
+	btn.rect_pivot_offset = btn.rect_size / 2.0
+
+
+func _on_btn_hover(btn, entered):
+	var target_scale = Vector2(1.04, 1.04) if entered else Vector2.ONE
+	btn.rect_scale = target_scale
 
 func _scale_titles():
 	_scale_label(title_label, 1.8)
@@ -131,10 +269,12 @@ func _show_idle():
 	idle_content.visible = true
 	connecting_content.visible = false
 	error_label.text = ""
+	_connect_base_msg = ""
 
 func _show_connecting(msg):
 	idle_content.visible = false
 	connecting_content.visible = true
+	_connect_base_msg = msg
 	status_label.text = msg
 	error_label.text = ""
 

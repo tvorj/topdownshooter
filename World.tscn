@@ -327,6 +327,7 @@ custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "0"
 
 [node name="Spacer" type="Control" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
+size_flags_vertical = 3
 rect_min_size = Vector2( 0, 8 )
 
 [node name="ButtonRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
