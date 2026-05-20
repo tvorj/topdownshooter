@@ -1,25 +1,50 @@
 extends KinematicBody2D
 
+# --- Scenes ---
 export(PackedScene) var BulletScene
+export(PackedScene) var DamageNumberScene
+
+# --- Player stats ---
 export var speed = 200
 export var hp = 30
-export(PackedScene) var DamageNumberScene
+
+# --- Vision ---
 export var vision_distance = 400
 export var vision_angle = 120
-var aim_angle = 0.0
-onready var hp_label = get_node_or_null("../UI/HpLabel")
+export var hide_enemies_outside_vision = true
+
+# --- Weapon / ammo ---
+export var magazine_size = 6
+export var reserve_ammo = 24
+export var max_reserve_ammo = 36
+export var reload_time = 1.2
+export var shoot_cooldown = 0.25
+
+var current_ammo = 0
+var is_reloading = false
+var reload_timer = 0.0
+var shoot_timer = 0.0
+
+# --- State ---
 var is_dead = false
 
+# --- Nodes ---
 onready var aim = $Aim
+onready var hp_label = get_node_or_null("../UI/HpLabel")
+onready var ammo_label = get_node_or_null("../UI/AmmoLabel")
 
-func update_hp_ui():
-	if hp_label:
-		hp_label.text = "HP: " + str(hp)
 
 func _ready():
+	current_ammo = magazine_size
 	update_hp_ui()
+	update_ammo_ui()
+	update()
+
 
 func _physics_process(delta):
+	if is_dead:
+		return
+
 	var direction = Vector2.ZERO
 
 	if Input.is_action_pressed("move_right"):
@@ -34,32 +59,132 @@ func _physics_process(delta):
 	direction = direction.normalized()
 	move_and_slide(direction * speed)
 
+
 func _process(delta):
+	if is_dead:
+		return
+
+	look_at(get_global_mouse_position())
 	update()
-	aim.look_at(get_global_mouse_position())
-	var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-	aim_angle = mouse_dir.angle()
-	
-	# Скрываем врагов вне FOV
-	for enemy in get_tree().get_nodes_in_group("enemy"):
-		enemy.visible = can_see(enemy)
-	
-	if Input.is_action_just_pressed("click"):
-		shoot()
-	if hp <= 0 and Input.is_key_pressed(KEY_R):
-		get_tree().reload_current_scene()
+	update_enemy_visibility()
+
+	shoot_timer -= delta
+
+	if is_reloading:
+		reload_timer -= delta
+
+		if reload_timer <= 0:
+			finish_reload()
+
+		update_ammo_ui()
+		return
+
+	if Input.is_key_pressed(KEY_R):
+		start_reload()
+
+	if Input.is_action_just_pressed("click") and shoot_timer <= 0:
+		try_shoot()
+
+
+# --- UI ---
+
+func update_hp_ui():
+	if hp_label:
+		hp_label.text = "HP: " + str(hp)
+
+
+func update_ammo_ui():
+	if ammo_label:
+		if is_reloading:
+			ammo_label.text = "Ammo: Reloading..."
+		else:
+			ammo_label.text = "Ammo: " + str(current_ammo) + " / " + str(reserve_ammo)
+
+
+# --- Shooting / reload ---
+
+func try_shoot():
+	if is_dead:
+		return
+
+	if is_reloading:
+		return
+
+	if current_ammo <= 0:
+		start_reload()
+		return
+
+	shoot()
+
+	current_ammo -= 1
+	shoot_timer = shoot_cooldown
+	update_ammo_ui()
+
 
 func shoot():
-	print("shoot called!")  # проверка что функция вызывается
 	if BulletScene == null:
-		print("BulletScene не назначена!")
+		print("Player BulletScene не назначена!")
 		return
+
 	var bullet = BulletScene.instance()
 	get_parent().add_child(bullet)
-	bullet.global_position = aim.global_position
-	var dir = (get_global_mouse_position() - bullet.global_position).normalized()
-	bullet.direction = dir
+
+	var shoot_position = global_position
+
+	if aim:
+		shoot_position = aim.global_position
+
+	var shoot_direction = (get_global_mouse_position() - shoot_position).normalized()
+
+	bullet.global_position = shoot_position
+	bullet.direction = shoot_direction
 	bullet.owner_node = self
+
+
+func start_reload():
+	if is_dead:
+		return
+
+	if is_reloading:
+		return
+
+	if current_ammo == magazine_size:
+		return
+
+	if reserve_ammo <= 0:
+		return
+
+	is_reloading = true
+	reload_timer = reload_time
+	update_ammo_ui()
+
+
+func finish_reload():
+	var needed_ammo = magazine_size - current_ammo
+	var ammo_to_load = min(needed_ammo, reserve_ammo)
+
+	current_ammo += ammo_to_load
+	reserve_ammo -= ammo_to_load
+
+	is_reloading = false
+	update_ammo_ui()
+
+
+func add_ammo(amount) -> bool:
+	if reserve_ammo >= max_reserve_ammo:
+		return false
+
+	reserve_ammo += amount
+
+	if reserve_ammo > max_reserve_ammo:
+		reserve_ammo = max_reserve_ammo
+
+	update_ammo_ui()
+	return true
+	
+
+
+# --- Damage / death ---
 
 func take_damage(amount):
 	if is_dead:
@@ -82,6 +207,7 @@ func take_damage(amount):
 	if hp <= 0:
 		die()
 
+
 func die():
 	if is_dead:
 		return
@@ -98,46 +224,71 @@ func die():
 		world.on_player_died()
 
 	set_physics_process(false)
-#func shoot():
-#	var bullet = BulletScene.instance()
-#	get_parent().add_child(bullet)
-#
-#	bullet.global_position = aim.global_position
-#
-#	var dir = (get_global_mouse_position() - bullet.global_position).normalized()
-#	bullet.direction = dir
+
+
+# --- Vision / FOV ---
 
 func _draw():
 	var half_angle = deg2rad(vision_angle / 2)
 	var points = [Vector2.ZERO]
-	
+
 	var steps = 20
+
 	for i in range(steps + 1):
-		var angle = aim_angle - half_angle + (half_angle * 2 / steps) * i
+		var angle = -half_angle + (half_angle * 2 / steps) * i
 		points.append(Vector2.RIGHT.rotated(angle) * vision_distance)
-	
+
 	points.append(Vector2.ZERO)
+
 	draw_colored_polygon(PoolVector2Array(points), Color(1, 1, 0, 0.1))
-	draw_line(Vector2.ZERO, Vector2.RIGHT.rotated(aim_angle - half_angle) * vision_distance, Color(1, 1, 0, 0.3), 1.0)
-	draw_line(Vector2.ZERO, Vector2.RIGHT.rotated(aim_angle + half_angle) * vision_distance, Color(1, 1, 0, 0.3), 1.0)
+	draw_line(
+		Vector2.ZERO,
+		Vector2.RIGHT.rotated(-half_angle) * vision_distance,
+		Color(1, 1, 0, 0.3),
+		1.0
+	)
+	draw_line(
+		Vector2.ZERO,
+		Vector2.RIGHT.rotated(half_angle) * vision_distance,
+		Color(1, 1, 0, 0.3),
+		1.0
+	)
+
+func update_enemy_visibility():
+	if not hide_enemies_outside_vision:
+		return
+
+	var enemies = get_tree().get_nodes_in_group("enemy")
+
+	for enemy in enemies:
+		if enemy == null:
+			continue
+
+		enemy.visible = can_see(enemy)
 
 func can_see(target) -> bool:
+	if target == null:
+		return false
+
 	var to_target = target.global_position - global_position
-	
-	# Проверяем дистанцию
+
 	if to_target.length() > vision_distance:
 		return false
-	
-	# Проверяем угол
-	var mouse_dir = (get_global_mouse_position() - global_position).normalized()
-	var angle_to_target = rad2deg(mouse_dir.angle_to(to_target.normalized()))
+
+	var forward = Vector2.RIGHT.rotated(rotation)
+	var angle_to_target = rad2deg(forward.angle_to(to_target.normalized()))
+
 	if abs(angle_to_target) > vision_angle / 2:
 		return false
-	
-	# Проверяем стены
+
 	var space_state = get_world_2d().direct_space_state
-	var result = space_state.intersect_ray(global_position, target.global_position, [self])
+	var result = space_state.intersect_ray(
+		global_position,
+		target.global_position,
+		[self]
+	)
+
 	if result and result.collider != target:
 		return false
-	
+
 	return true

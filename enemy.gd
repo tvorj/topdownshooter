@@ -14,7 +14,30 @@ export(PackedScene) var DamageNumberScene
 var player = null
 var shoot_timer = 0.0
 
+# AI movement
+export var patrol_speed = 45
+export var search_speed = 65
+export var change_direction_time = 1.5
+export var search_duration = 3.0
+
+enum EnemyState {
+	PATROL,
+	CHASE,
+	SEARCH
+}
+
+var state = EnemyState.PATROL
+
+var patrol_direction = Vector2.RIGHT
+var patrol_timer = 0.0
+
+var last_seen_position = Vector2.ZERO
+var search_timer = 0.0
+
 func _ready():
+	randomize()
+	choose_new_patrol_direction()
+
 	var players = get_tree().get_nodes_in_group("player")
 
 	if players.size() > 0:
@@ -24,17 +47,30 @@ func _ready():
 
 func _physics_process(delta):
 	update()
+
 	if player == null:
 		return
 
 	shoot_timer -= delta
 
-	if can_see_player():
-		chase_player()
+	var sees_player = can_see_player()
 
-		if shoot_timer <= 0:
-			shoot_at_player()
-			shoot_timer = shoot_cooldown
+	if sees_player:
+		state = EnemyState.CHASE
+		last_seen_position = player.global_position
+		search_timer = search_duration
+	elif state == EnemyState.CHASE:
+		state = EnemyState.SEARCH
+
+	match state:
+		EnemyState.PATROL:
+			patrol(delta)
+
+		EnemyState.CHASE:
+			chase_and_attack()
+
+		EnemyState.SEARCH:
+			search_player(delta)
 
 func shoot_at_player():
 	if BulletScene == null:
@@ -48,10 +84,54 @@ func shoot_at_player():
 	bullet.direction = (player.global_position - global_position).normalized()
 	bullet.owner_node = self
 
-func chase_player():
-	var direction = (player.global_position - global_position).normalized()
-	move_and_slide(direction * speed)
+func patrol(delta):
+	patrol_timer -= delta
+
+	if patrol_timer <= 0:
+		choose_new_patrol_direction()
+
+	look_at(global_position + patrol_direction)
+
+	move_and_slide(patrol_direction * patrol_speed)
+
+	if get_slide_count() > 0:
+		choose_new_patrol_direction()
+
+func choose_new_patrol_direction():
+	var angle = rand_range(0, PI * 2)
+	patrol_direction = Vector2(cos(angle), sin(angle)).normalized()
+	patrol_timer = change_direction_time
+
+func chase_and_attack():
 	look_at(player.global_position)
+
+	var distance_to_player = global_position.distance_to(player.global_position)
+
+	if distance_to_player > attack_distance:
+		var direction = (player.global_position - global_position).normalized()
+		move_and_slide(direction * speed)
+	else:
+		if shoot_timer <= 0:
+			shoot_at_player()
+			shoot_timer = shoot_cooldown
+
+func search_player(delta):
+	search_timer -= delta
+
+	var direction_to_last_seen = last_seen_position - global_position
+
+	if direction_to_last_seen.length() > 10:
+		var direction = direction_to_last_seen.normalized()
+		look_at(last_seen_position)
+		move_and_slide(direction * search_speed)
+	else:
+		# Дошёл до последней позиции игрока и осматривается
+		rotation += delta * 2.5
+
+	if search_timer <= 0:
+		state = EnemyState.PATROL
+		choose_new_patrol_direction()
+
 
 func can_see_player() -> bool:
 	var to_player = player.global_position - global_position
