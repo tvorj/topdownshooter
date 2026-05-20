@@ -10,8 +10,9 @@ export var hp = 10
 export var max_hp = 10
 
 # --- Vision ---
-export var vision_distance = 400
-export var vision_angle = 120
+export var vision_distance = 5000
+export var vision_angle = 15
+export var infinite_vision = true
 export var hide_enemies_outside_vision = true
 
 # --- Weapon / ammo ---
@@ -416,8 +417,8 @@ func can_see(target) -> bool:
 
 	var to_target = target.global_position - global_position
 
-	if to_target.length() > vision_distance:
-		return false
+	if to_target.length() == 0:
+		return true
 
 	var forward = Vector2.RIGHT.rotated(rotation)
 	var angle_to_target = rad2deg(forward.angle_to(to_target.normalized()))

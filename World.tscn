@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://wall.png" type="Texture" id=3]
 [ext_resource path="res://World.gd" type="Script" id=4]
@@ -67,6 +67,18 @@ points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
 } ]
 0/z_index = 0
 
+[sub_resource type="RectangleShape2D" id=7]
+extents = Vector2( 512, 16 )
+
+[sub_resource type="RectangleShape2D" id=8]
+extents = Vector2( 512, 16 )
+
+[sub_resource type="RectangleShape2D" id=9]
+extents = Vector2( 16, 384 )
+
+[sub_resource type="RectangleShape2D" id=10]
+extents = Vector2( 16, 384 )
+
 [node name="World" type="Node2D"]
 script = ExtResource( 4 )
 
@@ -78,8 +90,6 @@ format = 1
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="Hud" type="Control" parent="UI"]
-anchor_right = 0.0
-anchor_bottom = 0.0
 margin_left = 16.0
 margin_top = 16.0
 margin_right = 280.0
@@ -103,17 +113,17 @@ margin_bottom = 36.0
 custom_constants/separation = 8
 
 [node name="HpIcon" type="Label" parent="UI/Hud/HpRow"]
+margin_top = 4.0
 margin_right = 22.0
-margin_bottom = 22.0
+margin_bottom = 18.0
 rect_min_size = Vector2( 22, 0 )
 custom_colors/font_color = Color( 1, 0.388, 0.388, 1 )
 text = "HP"
 
 [node name="HpBarBg" type="ColorRect" parent="UI/Hud/HpRow"]
 margin_left = 30.0
-margin_top = 4.0
 margin_right = 170.0
-margin_bottom = 18.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 140, 14 )
 color = Color( 0.039, 0.047, 0.067, 1 )
 
@@ -128,8 +138,9 @@ color = Color( 0.298, 0.788, 0.345, 1 )
 
 [node name="HpText" type="Label" parent="UI/Hud/HpRow"]
 margin_left = 178.0
-margin_right = 240.0
-margin_bottom = 22.0
+margin_top = 4.0
+margin_right = 223.0
+margin_bottom = 18.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "10 / 10"
 
@@ -141,64 +152,65 @@ margin_bottom = 66.0
 custom_constants/separation = 8
 
 [node name="AmmoIcon" type="Label" parent="UI/Hud/AmmoRow"]
+margin_top = 4.0
 margin_right = 22.0
-margin_bottom = 22.0
+margin_bottom = 18.0
 rect_min_size = Vector2( 22, 0 )
 custom_colors/font_color = Color( 1, 0.65, 0.243, 1 )
 text = "AM"
 
 [node name="AmmoIcons" type="HBoxContainer" parent="UI/Hud/AmmoRow"]
 margin_left = 30.0
-margin_top = 4.0
 margin_right = 134.0
-margin_bottom = 18.0
+margin_bottom = 22.0
 custom_constants/separation = 4
 
 [node name="Bullet1" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
 margin_right = 14.0
-margin_bottom = 14.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 14, 14 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet2" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
 margin_left = 18.0
 margin_right = 32.0
-margin_bottom = 14.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 14, 14 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet3" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
 margin_left = 36.0
 margin_right = 50.0
-margin_bottom = 14.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 14, 14 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet4" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
 margin_left = 54.0
 margin_right = 68.0
-margin_bottom = 14.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 14, 14 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet5" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
 margin_left = 72.0
 margin_right = 86.0
-margin_bottom = 14.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 14, 14 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet6" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
 margin_left = 90.0
 margin_right = 104.0
-margin_bottom = 14.0
+margin_bottom = 22.0
 rect_min_size = Vector2( 14, 14 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="AmmoText" type="Label" parent="UI/Hud/AmmoRow"]
 margin_left = 142.0
-margin_right = 240.0
-margin_bottom = 22.0
+margin_top = 4.0
+margin_right = 179.0
+margin_bottom = 18.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "6 / 24"
 
@@ -217,6 +229,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 
 [node name="Card" type="PanelContainer" parent="UI/GameOverScreen/Center"]
+margin_left = 302.0
+margin_top = 90.0
+margin_right = 722.0
+margin_bottom = 510.0
 rect_min_size = Vector2( 420, 420 )
 
 [node name="Margin" type="MarginContainer" parent="UI/GameOverScreen/Center/Card"]
@@ -226,6 +242,10 @@ custom_constants/margin_left = 32
 custom_constants/margin_bottom = 28
 
 [node name="VBox" type="VBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin"]
+margin_left = 32.0
+margin_top = 28.0
+margin_right = 364.0
+margin_bottom = 253.0
 custom_constants/separation = 12
 
 [node name="Title" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
@@ -359,6 +379,32 @@ position = Vector2( 520, 460 )
 [node name="HealthSpawner" type="Node2D" parent="."]
 script = ExtResource( 7 )
 HealthPickupScene = ExtResource( 8 )
+
+[node name="MapBounds" type="Node2D" parent="."]
+
+[node name="TopWall" type="StaticBody2D" parent="MapBounds"]
+position = Vector2( 512, -16 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapBounds/TopWall"]
+shape = SubResource( 7 )
+
+[node name="BottomWall" type="StaticBody2D" parent="MapBounds"]
+position = Vector2( 512, 784 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapBounds/BottomWall"]
+shape = SubResource( 8 )
+
+[node name="LeftWall" type="StaticBody2D" parent="MapBounds"]
+position = Vector2( -16, 384 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapBounds/LeftWall"]
+shape = SubResource( 9 )
+
+[node name="RightWall" type="StaticBody2D" parent="MapBounds"]
+position = Vector2( 1040, 384 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapBounds/RightWall"]
+shape = SubResource( 10 )
 
 [connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/PlayAgainBtn" to="." method="_on_PlayAgainBtn_pressed"]
 [connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/MainMenuBtn" to="." method="_on_MainMenuBtn_pressed"]
