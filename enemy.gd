@@ -3,8 +3,8 @@ extends KinematicBody2D
 export var speed = 80
 export var hp = 3
 
-export var vision_distance = 500
-export var vision_angle = 103
+export var vision_distance = 5000
+export var vision_angle = 45
 
 export(PackedScene) var BulletScene
 export var shoot_cooldown = 1.0
