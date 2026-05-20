@@ -3,10 +3,10 @@ extends Node2D
 const PlayerScene = preload("res://Player.tscn")
 const EnemyScene = preload("res://enemy.tscn")
 
-const SPAWN_SINGLE = Vector2(400, 300)
-const SPAWN_HOST = Vector2(160, 160)
-const SPAWN_CLIENT = Vector2(900, 500)
-const ENEMY_SPAWNS = [Vector2(699, 400), Vector2(872, 484), Vector2(850, 165)]
+const SPAWN_SINGLE  = Vector2(208, 784)
+const SPAWN_HOST    = Vector2(208, 784)
+const SPAWN_CLIENT  = Vector2(2352, 784)
+const ENEMY_SPAWNS  = [Vector2(2352, 272), Vector2(2352, 1296), Vector2(1104, 784)]
 
 const COLOR_WIN = Color(0.298, 0.788, 0.345, 1)
 const COLOR_LOSE = Color(1.0, 0.298, 0.298, 1)
@@ -52,6 +52,7 @@ func _setup_single():
 	p.name = "Player"
 	p.position = SPAWN_SINGLE
 	add_child(p)
+	_attach_camera(p)
 	for pos in ENEMY_SPAWNS:
 		var e = EnemyScene.instance()
 		e.position = pos
@@ -66,6 +67,9 @@ func _setup_pvp():
 	var client_id = my_id if not get_tree().is_network_server() else peers[0]
 	_spawn_networked_player(host_id, SPAWN_HOST)
 	_spawn_networked_player(client_id, SPAWN_CLIENT)
+	var local_node = get_node_or_null(str(my_id))
+	if local_node:
+		_attach_camera(local_node)
 
 
 func _spawn_networked_player(peer_id, pos):
@@ -74,6 +78,24 @@ func _spawn_networked_player(peer_id, pos):
 	p.position = pos
 	add_child(p)
 	p.set_network_master(peer_id)
+
+
+func _attach_camera(player_node):
+	var cam = Camera2D.new()
+	cam.current = true
+	cam.drag_margin_h_enabled = true
+	cam.drag_margin_v_enabled = true
+	cam.drag_margin_left = 0.15
+	cam.drag_margin_right = 0.15
+	cam.drag_margin_top = 0.15
+	cam.drag_margin_bottom = 0.15
+	cam.smoothing_enabled = true
+	cam.smoothing_speed = 7.0
+	cam.limit_left = 0
+	cam.limit_top = 0
+	cam.limit_right = 80 * 32
+	cam.limit_bottom = 50 * 32
+	player_node.add_child(cam)
 
 
 func _process(delta):
@@ -203,46 +225,62 @@ func _build_map():
 	var tm = $TileMap
 	tm.clear()
 
+	var W = 80
+	var H = 50
+
 	# Outer border
-	_wall_rect(tm, 0, 0, 31, 0)
-	_wall_rect(tm, 0, 17, 31, 17)
-	_wall_rect(tm, 0, 0, 0, 17)
-	_wall_rect(tm, 31, 0, 31, 17)
+	_wall_rect(tm, 0, 0, W - 1, 0)
+	_wall_rect(tm, 0, H - 1, W - 1, H - 1)
+	_wall_rect(tm, 0, 0, 0, H - 1)
+	_wall_rect(tm, W - 1, 0, W - 1, H - 1)
 
-	# Left divider — passage open at y=6..11
-	_wall_rect(tm, 7, 1, 7, 5)
-	_wall_rect(tm, 7, 12, 7, 16)
+	# Left base divider — passage open at y=20..30
+	_wall_rect(tm, 12, 1, 12, 19)
+	_wall_rect(tm, 12, 31, 12, 48)
 
-	# Right divider — passage open at y=6..11
-	_wall_rect(tm, 24, 1, 24, 5)
-	_wall_rect(tm, 24, 12, 24, 16)
+	# Right base divider — passage open at y=20..30
+	_wall_rect(tm, 67, 1, 67, 19)
+	_wall_rect(tm, 67, 31, 67, 48)
 
-	# Top-left L-cover (opens toward bottom-right)
-	_wall_rect(tm, 10, 4, 10, 6)
-	_wall_rect(tm, 10, 4, 11, 4)
+	# --- Inner horizontal walls creating 3 lanes ---
+	# Top separator (gap at x=23..26 and x=53..56)
+	_wall_rect(tm, 13, 17, 22, 17)
+	_wall_rect(tm, 27, 17, 52, 17)
+	_wall_rect(tm, 57, 17, 66, 17)
+	# Bottom separator (mirror)
+	_wall_rect(tm, 13, 32, 22, 32)
+	_wall_rect(tm, 27, 32, 52, 32)
+	_wall_rect(tm, 57, 32, 66, 32)
 
-	# Top-right L-cover (opens toward bottom-left)
-	_wall_rect(tm, 20, 4, 21, 4)
-	_wall_rect(tm, 21, 4, 21, 6)
+	# --- Top lane covers (y=1..16) ---
+	# Top-left L (opens bottom-right)
+	_wall_rect(tm, 22, 5, 22, 14)
+	_wall_rect(tm, 22, 5, 27, 5)
+	# Top-right L (opens bottom-left)
+	_wall_rect(tm, 57, 5, 57, 14)
+	_wall_rect(tm, 52, 5, 57, 5)
+	# Top center box
+	_wall_rect(tm, 37, 7, 42, 10)
 
-	# Bottom-left L-cover (opens toward top-right)
-	_wall_rect(tm, 10, 11, 10, 13)
-	_wall_rect(tm, 10, 13, 11, 13)
+	# --- Bottom lane covers (y=33..48, mirror) ---
+	_wall_rect(tm, 22, 35, 22, 44)
+	_wall_rect(tm, 22, 44, 27, 44)
+	_wall_rect(tm, 57, 35, 57, 44)
+	_wall_rect(tm, 52, 44, 57, 44)
+	_wall_rect(tm, 37, 39, 42, 42)
 
-	# Bottom-right L-cover (opens toward top-left)
-	_wall_rect(tm, 22, 11, 22, 13)
-	_wall_rect(tm, 22, 13, 23, 13)
-
-	# Center pillar
-	_wall_rect(tm, 15, 8, 16, 9)
-
-	# Top cover strips
-	_wall_rect(tm, 13, 3, 14, 3)
-	_wall_rect(tm, 17, 3, 18, 3)
-
-	# Bottom cover strips
-	_wall_rect(tm, 13, 14, 14, 14)
-	_wall_rect(tm, 17, 14, 18, 14)
+	# --- Mid lane covers (y=18..31) ---
+	# Mid-left L
+	_wall_rect(tm, 24, 20, 24, 29)
+	_wall_rect(tm, 24, 20, 29, 20)
+	# Mid-right L (mirror)
+	_wall_rect(tm, 55, 20, 55, 29)
+	_wall_rect(tm, 50, 20, 55, 20)
+	# Center large pillar
+	_wall_rect(tm, 36, 22, 43, 27)
+	# Mid inner covers flanking pillar
+	_wall_rect(tm, 32, 24, 33, 25)
+	_wall_rect(tm, 46, 24, 47, 25)
 
 
 func _wall_rect(tm, x1, y1, x2, y2):
