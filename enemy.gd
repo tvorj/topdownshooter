@@ -82,6 +82,7 @@ func shoot_at_player():
 
 	bullet.global_position = global_position
 	bullet.direction = (player.global_position - global_position).normalized()
+	bullet.damage = 1
 	bullet.owner_node = self
 
 func patrol(delta):

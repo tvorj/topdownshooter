@@ -1,12 +1,12 @@
 extends Node2D
 
-export(PackedScene) var AmmoPickupScene
-export var spawn_interval = 6.0
-export var max_pickups = 3
+export(PackedScene) var HealthPickupScene
+export var spawn_interval = 10.0
+export var max_pickups = 2
 export var spawn_on_start = true
 export var occupied_radius = 24.0
 
-onready var spawn_points_root = get_node_or_null("../AmmoSpawnPoints")
+onready var spawn_points_root = get_node_or_null("../HealthSpawnPoints")
 
 var spawn_timer = 0.0
 
@@ -19,7 +19,7 @@ func _ready():
 
 
 func _process(delta):
-	if AmmoPickupScene == null or spawn_points_root == null:
+	if HealthPickupScene == null or spawn_points_root == null:
 		return
 
 	spawn_timer -= delta
@@ -29,10 +29,10 @@ func _process(delta):
 
 
 func try_spawn_pickup():
-	if AmmoPickupScene == null or spawn_points_root == null:
+	if HealthPickupScene == null or spawn_points_root == null:
 		return
 
-	var existing = get_tree().get_nodes_in_group("ammo_pickup")
+	var existing = get_tree().get_nodes_in_group("health_pickup")
 	if existing.size() >= max_pickups:
 		return
 
@@ -54,7 +54,7 @@ func try_spawn_pickup():
 		return
 
 	var point = free_points[randi() % free_points.size()]
-	var pickup = AmmoPickupScene.instance()
+	var pickup = HealthPickupScene.instance()
 	get_parent().add_child(pickup)
 	pickup.global_position = point.global_position
 	if pickup.has_method("set_spawn_position"):
