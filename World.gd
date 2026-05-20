@@ -160,6 +160,8 @@ func freeze_world():
 		pk.set_process(false)
 	for pk in get_tree().get_nodes_in_group("health_pickup"):
 		pk.set_process(false)
+	for pk in get_tree().get_nodes_in_group("armor_pickup"):
+		pk.set_process(false)
 
 
 func stop_enemies():

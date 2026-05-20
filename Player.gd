@@ -8,6 +8,8 @@ export(PackedScene) var DamageNumberScene
 export var speed = 200
 export var hp = 10
 export var max_hp = 10
+export var armor = 0
+export var max_armor = 10
 
 # --- Vision ---
 export var vision_distance = 5000
@@ -47,6 +49,8 @@ onready var hp_text = get_node_or_null("../UI/Hud/HpRow/HpText")
 onready var hp_bar_fill = get_node_or_null("../UI/Hud/HpRow/HpBarBg/HpBarFill")
 onready var ammo_text = get_node_or_null("../UI/Hud/AmmoRow/AmmoText")
 onready var ammo_icons = get_node_or_null("../UI/Hud/AmmoRow/AmmoIcons")
+onready var armor_text = get_node_or_null("../UI/Hud/ArmorRow/ArmorText")
+onready var armor_bar_fill = get_node_or_null("../UI/Hud/ArmorRow/ArmorBarBg/ArmorBarFill")
 
 # --- Network sync ---
 puppet var puppet_pos = Vector2.ZERO
@@ -57,6 +61,8 @@ func _is_local():
 	return not GameState.is_pvp() or is_network_master()
 
 
+var _x_was_pressed = false
+
 func _ready():
 	current_ammo = magazine_size
 	puppet_pos = global_position
@@ -65,6 +71,7 @@ func _ready():
 	if _is_local():
 		update_hp_ui()
 		update_ammo_ui()
+		update_armor_ui()
 	update()
 
 
@@ -125,6 +132,11 @@ func _process(delta):
 	if Input.is_key_pressed(KEY_R):
 		start_reload()
 
+	var x_now = Input.is_key_pressed(KEY_X)
+	if x_now and not _x_was_pressed:
+		suicide()
+	_x_was_pressed = x_now
+
 	if Input.is_action_just_pressed("click") and shoot_timer <= 0:
 		try_shoot()
 
@@ -136,6 +148,7 @@ const HP_COLOR_MID = Color(1.0, 0.749, 0.196, 1)
 const HP_COLOR_LOW = Color(1.0, 0.298, 0.298, 1)
 const AMMO_COLOR_FULL = Color(1.0, 0.65, 0.243, 1)
 const AMMO_COLOR_EMPTY = Color(0.2, 0.22, 0.27, 1)
+const ARMOR_COLOR = Color(0.345, 0.65, 1.0, 1)
 
 func update_hp_ui():
 	if not _is_local():
@@ -152,6 +165,18 @@ func update_hp_ui():
 			hp_bar_fill.color = HP_COLOR_MID
 		else:
 			hp_bar_fill.color = HP_COLOR_LOW
+
+
+func update_armor_ui():
+	if not _is_local():
+		return
+	var ratio = clamp(float(armor) / float(max(max_armor, 1)), 0.0, 1.0)
+	if armor_text:
+		armor_text.text = str(armor) + " / " + str(max_armor)
+	if armor_bar_fill:
+		armor_bar_fill.anchor_right = ratio
+		armor_bar_fill.margin_right = 0
+		armor_bar_fill.color = ARMOR_COLOR
 
 
 func update_ammo_ui():
@@ -298,11 +323,35 @@ func add_health(amount) -> bool:
 		new_hp = max_hp
 
 	if GameState.is_pvp():
-		_apply_hp(new_hp, 0)
-		rpc("sync_hp", new_hp, 0)
+		_apply_armor_hp(armor, new_hp, 0)
+		rpc("sync_armor_hp", armor, new_hp, 0)
 	else:
 		hp = new_hp
 		update_hp_ui()
+
+	return true
+
+
+func add_armor(amount) -> bool:
+	if is_dead:
+		return false
+	if armor >= max_armor:
+		return false
+
+	if GameState.is_pvp():
+		if not get_tree().is_network_server():
+			return false
+
+	var new_armor = armor + amount
+	if new_armor > max_armor:
+		new_armor = max_armor
+
+	if GameState.is_pvp():
+		_apply_armor_hp(new_armor, hp, 0)
+		rpc("sync_armor_hp", new_armor, hp, 0)
+	else:
+		armor = new_armor
+		update_armor_ui()
 
 	return true
 
@@ -316,39 +365,59 @@ func take_damage(amount):
 	if GameState.is_pvp():
 		if not get_tree().is_network_server():
 			return
-		var new_hp = hp - amount
+		var soak = min(armor, amount)
+		var new_armor = armor - soak
+		var dmg_through = amount - soak
+		var new_hp = hp - dmg_through
 		if new_hp < 0:
 			new_hp = 0
-		_apply_hp(new_hp, amount)
-		rpc("sync_hp", new_hp, amount)
+		_apply_armor_hp(new_armor, new_hp, amount)
+		rpc("sync_armor_hp", new_armor, new_hp, amount)
 	else:
-		_apply_damage(amount)
+		var soak = min(armor, amount)
+		var new_armor = armor - soak
+		var dmg_through = amount - soak
+		var new_hp = hp - dmg_through
+		if new_hp < 0:
+			new_hp = 0
+		_apply_armor_hp(new_armor, new_hp, amount)
 
 
-remote func sync_hp(new_hp, amount):
-	_apply_hp(new_hp, amount)
+remote func sync_armor_hp(new_armor, new_hp, amount):
+	_apply_armor_hp(new_armor, new_hp, amount)
 
 
-func _apply_damage(amount):
-	var new_hp = hp - amount
-	if new_hp < 0:
-		new_hp = 0
-	_apply_hp(new_hp, amount)
-
-
-func _apply_hp(new_hp, amount):
+func _apply_armor_hp(new_armor, new_hp, amount):
 	if is_dead:
 		return
 	if amount > 0 and _is_local():
 		stats.damage_taken += amount
+	armor = new_armor
 	hp = new_hp
 	update_hp_ui()
+	update_armor_ui()
 	if DamageNumberScene and amount > 0:
 		var dmg = DamageNumberScene.instance()
 		get_parent().add_child(dmg)
 		dmg.setup(amount, global_position)
 	if hp <= 0:
 		die()
+
+
+func suicide():
+	if is_dead:
+		return
+	if not _is_local():
+		return
+	if GameState.is_pvp() and not get_tree().is_network_server():
+		rpc_id(1, "net_suicide")
+	else:
+		take_damage(hp + armor + 999)
+
+
+remote func net_suicide():
+	if get_tree().is_network_server():
+		take_damage(hp + armor + 999)
 
 
 func die():
@@ -434,7 +503,7 @@ func _has_line_of_sight(target):
 	return true
 
 
-const TARGET_BODY_RADIUS_ENEMY = 32.0
+const TARGET_BODY_RADIUS_ENEMY = 16.0
 const TARGET_BODY_RADIUS_PLAYER = 18.0
 
 func is_strictly_in_fov(target) -> bool:
