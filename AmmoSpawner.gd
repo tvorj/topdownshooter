@@ -14,7 +14,8 @@ var spawn_timer = 0.0
 func _ready():
 	randomize()
 	if spawn_on_start:
-		try_spawn_pickup()
+		for _i in range(max_pickups):
+			try_spawn_pickup()
 	spawn_timer = spawn_interval
 
 
@@ -55,7 +56,7 @@ func try_spawn_pickup():
 
 	var point = free_points[randi() % free_points.size()]
 	var pickup = AmmoPickupScene.instance()
+	pickup.position = point.global_position
 	get_parent().add_child(pickup)
-	pickup.global_position = point.global_position
 	if pickup.has_method("set_spawn_position"):
 		pickup.set_spawn_position(point.global_position)

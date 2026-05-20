@@ -421,20 +421,30 @@ func update_enemy_visibility():
 		t.visible = can_see(t)
 
 
+const PERIPHERAL_RADIUS = 90.0
+
 func can_see(target) -> bool:
 	if target == null:
 		return false
 
 	var to_target = target.global_position - global_position
+	var dist = to_target.length()
 
-	if to_target.length() == 0:
+	if dist == 0:
 		return true
 
-	var forward = Vector2.RIGHT.rotated(rotation)
-	var angle_to_target = rad2deg(forward.angle_to(to_target.normalized()))
+	# Anyone within peripheral radius is visible regardless of cone angle.
+	# Skips the cone check; we still check line of sight (a wall can block).
+	var inside_peripheral = dist <= PERIPHERAL_RADIUS
 
-	if abs(angle_to_target) > vision_angle / 2:
-		return false
+	if not infinite_vision and not inside_peripheral:
+		if dist > vision_distance:
+			return false
+
+		var forward = Vector2.RIGHT.rotated(rotation)
+		var angle_to_target = rad2deg(forward.angle_to(to_target.normalized()))
+		if abs(angle_to_target) > vision_angle / 2:
+			return false
 
 	var space_state = get_world_2d().direct_space_state
 	var result = space_state.intersect_ray(
