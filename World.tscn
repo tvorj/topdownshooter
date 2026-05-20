@@ -1,11 +1,11 @@
 [gd_scene load_steps=12 format=2]
 
-[ext_resource path="res://Player.tscn" type="PackedScene" id=1]
-[ext_resource path="res://enemy.tscn" type="PackedScene" id=2]
 [ext_resource path="res://wall.png" type="Texture" id=3]
 [ext_resource path="res://World.gd" type="Script" id=4]
 [ext_resource path="res://AmmoSpawner.gd" type="Script" id=5]
 [ext_resource path="res://AmmoPickup.tscn" type="PackedScene" id=6]
+[ext_resource path="res://HealthSpawner.gd" type="Script" id=7]
+[ext_resource path="res://HealthPickup.tscn" type="PackedScene" id=8]
 
 [sub_resource type="ConvexPolygonShape2D" id=3]
 points = PoolVector2Array( 0, 0, 32, 0, 32, 32, 0, 32 )
@@ -75,69 +75,290 @@ tile_set = SubResource( 2 )
 cell_size = Vector2( 32, 32 )
 format = 1
 
-[node name="Player" parent="." instance=ExtResource( 1 )]
-hide_enemies_outside_vision = false
-
-[node name="enemy" parent="." instance=ExtResource( 2 )]
-position = Vector2( 699, 400 )
-
-[node name="enemy2" parent="." instance=ExtResource( 2 )]
-position = Vector2( 872, 484 )
-
-[node name="enemy3" parent="." instance=ExtResource( 2 )]
-position = Vector2( 850, 165 )
-
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="HpLabel" type="Label" parent="UI"]
-margin_left = 28.0
-margin_top = 30.0
-margin_right = 70.0
-margin_bottom = 44.0
-text = "HP: 30"
+[node name="Hud" type="Control" parent="UI"]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 16.0
+margin_top = 16.0
+margin_right = 280.0
+margin_bottom = 96.0
 
-[node name="AmmoLabel" type="Label" parent="UI"]
-margin_left = 88.0
-margin_top = 30.0
-margin_right = 176.0
-margin_bottom = 44.0
-text = "Ammo: 6 / 24"
+[node name="HudBg" type="ColorRect" parent="UI/Hud"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0.0588, 0.0667, 0.0941, 0.78 )
 
-[node name="LoseLabel" type="Label" parent="UI"]
+[node name="HudBorder" type="ColorRect" parent="UI/Hud"]
+anchor_right = 1.0
+margin_bottom = 2.0
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="HpRow" type="HBoxContainer" parent="UI/Hud"]
+margin_left = 12.0
+margin_top = 14.0
+margin_right = 252.0
+margin_bottom = 36.0
+custom_constants/separation = 8
+
+[node name="HpIcon" type="Label" parent="UI/Hud/HpRow"]
+margin_right = 22.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 22, 0 )
+custom_colors/font_color = Color( 1, 0.388, 0.388, 1 )
+text = "HP"
+
+[node name="HpBarBg" type="ColorRect" parent="UI/Hud/HpRow"]
+margin_left = 30.0
+margin_top = 4.0
+margin_right = 170.0
+margin_bottom = 18.0
+rect_min_size = Vector2( 140, 14 )
+color = Color( 0.039, 0.047, 0.067, 1 )
+
+[node name="HpBarFill" type="ColorRect" parent="UI/Hud/HpRow/HpBarBg"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 1.0
+margin_top = 1.0
+margin_right = -1.0
+margin_bottom = -1.0
+color = Color( 0.298, 0.788, 0.345, 1 )
+
+[node name="HpText" type="Label" parent="UI/Hud/HpRow"]
+margin_left = 178.0
+margin_right = 240.0
+margin_bottom = 22.0
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "10 / 10"
+
+[node name="AmmoRow" type="HBoxContainer" parent="UI/Hud"]
+margin_left = 12.0
+margin_top = 44.0
+margin_right = 252.0
+margin_bottom = 66.0
+custom_constants/separation = 8
+
+[node name="AmmoIcon" type="Label" parent="UI/Hud/AmmoRow"]
+margin_right = 22.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 22, 0 )
+custom_colors/font_color = Color( 1, 0.65, 0.243, 1 )
+text = "AM"
+
+[node name="AmmoIcons" type="HBoxContainer" parent="UI/Hud/AmmoRow"]
+margin_left = 30.0
+margin_top = 4.0
+margin_right = 134.0
+margin_bottom = 18.0
+custom_constants/separation = 4
+
+[node name="Bullet1" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
+margin_right = 14.0
+margin_bottom = 14.0
+rect_min_size = Vector2( 14, 14 )
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="Bullet2" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
+margin_left = 18.0
+margin_right = 32.0
+margin_bottom = 14.0
+rect_min_size = Vector2( 14, 14 )
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="Bullet3" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
+margin_left = 36.0
+margin_right = 50.0
+margin_bottom = 14.0
+rect_min_size = Vector2( 14, 14 )
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="Bullet4" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
+margin_left = 54.0
+margin_right = 68.0
+margin_bottom = 14.0
+rect_min_size = Vector2( 14, 14 )
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="Bullet5" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
+margin_left = 72.0
+margin_right = 86.0
+margin_bottom = 14.0
+rect_min_size = Vector2( 14, 14 )
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="Bullet6" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
+margin_left = 90.0
+margin_right = 104.0
+margin_bottom = 14.0
+rect_min_size = Vector2( 14, 14 )
+color = Color( 1, 0.65, 0.243, 1 )
+
+[node name="AmmoText" type="Label" parent="UI/Hud/AmmoRow"]
+margin_left = 142.0
+margin_right = 240.0
+margin_bottom = 22.0
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "6 / 24"
+
+[node name="GameOverScreen" type="Control" parent="UI"]
 visible = false
-margin_left = 400.0
-margin_top = 250.0
-margin_right = 464.0
-margin_bottom = 264.0
-text = "YOU DIED
-Press R to restart"
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="WinLabel" type="Label" parent="UI"]
-visible = false
-margin_left = 400.0
-margin_top = 250.0
-margin_right = 510.0
-margin_bottom = 281.0
-text = "YOU WIN
-Press R to restart"
+[node name="Backdrop" type="ColorRect" parent="UI/GameOverScreen"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0, 0, 0, 0.6 )
+
+[node name="Center" type="CenterContainer" parent="UI/GameOverScreen"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Card" type="PanelContainer" parent="UI/GameOverScreen/Center"]
+rect_min_size = Vector2( 420, 420 )
+
+[node name="Margin" type="MarginContainer" parent="UI/GameOverScreen/Center/Card"]
+custom_constants/margin_right = 32
+custom_constants/margin_top = 28
+custom_constants/margin_left = 32
+custom_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin"]
+custom_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
+custom_colors/font_color = Color( 0.298, 0.788, 0.345, 1 )
+text = "VICTORY"
+align = 1
+
+[node name="Divider" type="ColorRect" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
+rect_min_size = Vector2( 0, 1 )
+color = Color( 0.235, 0.247, 0.298, 1 )
+
+[node name="StatsVBox" type="VBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
+custom_constants/separation = 6
+
+[node name="TimeRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox"]
+
+[node name="Name" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/TimeRow"]
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 0.541, 0.557, 0.624, 1 )
+text = "Time"
+
+[node name="Value" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/TimeRow"]
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "0:00"
+
+[node name="KillsRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox"]
+
+[node name="Name" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/KillsRow"]
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 0.541, 0.557, 0.624, 1 )
+text = "Kills"
+
+[node name="Value" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/KillsRow"]
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "0"
+
+[node name="ShotsRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox"]
+
+[node name="Name" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/ShotsRow"]
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 0.541, 0.557, 0.624, 1 )
+text = "Shots fired"
+
+[node name="Value" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/ShotsRow"]
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "0"
+
+[node name="AccuracyRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox"]
+
+[node name="Name" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/AccuracyRow"]
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 0.541, 0.557, 0.624, 1 )
+text = "Accuracy"
+
+[node name="Value" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/AccuracyRow"]
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "0%"
+
+[node name="DamageDealtRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox"]
+
+[node name="Name" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/DamageDealtRow"]
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 0.541, 0.557, 0.624, 1 )
+text = "Damage dealt"
+
+[node name="Value" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/DamageDealtRow"]
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "0"
+
+[node name="DamageTakenRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox"]
+
+[node name="Name" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/DamageTakenRow"]
+size_flags_horizontal = 3
+custom_colors/font_color = Color( 0.541, 0.557, 0.624, 1 )
+text = "Damage taken"
+
+[node name="Value" type="Label" parent="UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/DamageTakenRow"]
+custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
+text = "0"
+
+[node name="Spacer" type="Control" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
+rect_min_size = Vector2( 0, 8 )
+
+[node name="ButtonRow" type="HBoxContainer" parent="UI/GameOverScreen/Center/Card/Margin/VBox"]
+custom_constants/separation = 12
+alignment = 1
+
+[node name="PlayAgainBtn" type="Button" parent="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow"]
+rect_min_size = Vector2( 160, 40 )
+text = "Play Again"
+
+[node name="MainMenuBtn" type="Button" parent="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow"]
+rect_min_size = Vector2( 160, 40 )
+text = "Main Menu"
 
 [node name="AmmoSpawnPoints" type="Node2D" parent="."]
 
 [node name="AmmoSpawnPoint1" type="Position2D" parent="AmmoSpawnPoints"]
-position = Vector2( 455, 160 )
+position = Vector2( 320, 340 )
 
 [node name="AmmoSpawnPoint2" type="Position2D" parent="AmmoSpawnPoints"]
-position = Vector2( 619, 299 )
+position = Vector2( 560, 330 )
 
 [node name="AmmoSpawnPoint3" type="Position2D" parent="AmmoSpawnPoints"]
-position = Vector2( 262, 271 )
+position = Vector2( 700, 400 )
 
 [node name="AmmoSpawnPoint4" type="Position2D" parent="AmmoSpawnPoints"]
-position = Vector2( 462, 520 )
+position = Vector2( 380, 460 )
 
 [node name="AmmoSpawnPoint5" type="Position2D" parent="AmmoSpawnPoints"]
-position = Vector2( 324, 461 )
+position = Vector2( 640, 450 )
 
 [node name="AmmoSpawner" type="Node2D" parent="."]
 script = ExtResource( 5 )
 AmmoPickupScene = ExtResource( 6 )
+
+[node name="HealthSpawnPoints" type="Node2D" parent="."]
+
+[node name="HealthSpawnPoint1" type="Position2D" parent="HealthSpawnPoints"]
+position = Vector2( 450, 360 )
+
+[node name="HealthSpawnPoint2" type="Position2D" parent="HealthSpawnPoints"]
+position = Vector2( 300, 420 )
+
+[node name="HealthSpawnPoint3" type="Position2D" parent="HealthSpawnPoints"]
+position = Vector2( 620, 380 )
+
+[node name="HealthSpawnPoint4" type="Position2D" parent="HealthSpawnPoints"]
+position = Vector2( 520, 460 )
+
+[node name="HealthSpawner" type="Node2D" parent="."]
+script = ExtResource( 7 )
+HealthPickupScene = ExtResource( 8 )
+
+[connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/PlayAgainBtn" to="." method="_on_PlayAgainBtn_pressed"]
+[connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/MainMenuBtn" to="." method="_on_MainMenuBtn_pressed"]
