@@ -9,6 +9,10 @@ export var vision_angle = 45
 export(PackedScene) var BulletScene
 export var shoot_cooldown = 1.0
 export var attack_distance = 350
+export var preferred_min_distance = 230.0
+export var preferred_max_distance = 330.0
+export var strafe_speed = 70.0
+export var strafe_change_interval = 1.2
 export(PackedScene) var DamageNumberScene
 
 var player = null
@@ -16,28 +20,26 @@ var shoot_timer = 0.0
 var _fov_points := PoolVector2Array()
 
 # AI movement
-export var patrol_speed = 45
 export var search_speed = 65
-export var change_direction_time = 1.5
-export var search_duration = 3.0
+export var stuck_check_interval = 0.5
+export var stuck_distance_threshold = 10.0
+export var avoid_duration = 0.8
 
-enum EnemyState {
-	PATROL,
-	CHASE,
-	SEARCH
-}
+var _last_position = Vector2.ZERO
+var _stuck_timer = 0.0
+var _avoid_timer = 0.0
+var _avoid_dir = Vector2.ZERO
 
-var state = EnemyState.PATROL
+var _strafe_dir = 1
+var _strafe_timer = 0.0
+var _alerted = false
 
-var patrol_direction = Vector2.RIGHT
-var patrol_timer = 0.0
-
-var last_seen_position = Vector2.ZERO
-var search_timer = 0.0
+var show_fov = false
 
 func _ready():
 	randomize()
-	choose_new_patrol_direction()
+	_last_position = global_position
+	_stuck_timer = stuck_check_interval
 
 	var players = get_tree().get_nodes_in_group("player")
 
@@ -54,25 +56,45 @@ func _physics_process(delta):
 		return
 
 	shoot_timer -= delta
+	_strafe_timer -= delta
 
-	var sees_player = can_see_player()
+	if can_see_player():
+		chase_and_attack(delta)
+	elif _alerted:
+		seek_player(delta)
+	else:
+		seek_player(delta)
 
-	if sees_player:
-		state = EnemyState.CHASE
-		last_seen_position = player.global_position
-		search_timer = search_duration
-	elif state == EnemyState.CHASE:
-		state = EnemyState.SEARCH
 
-	match state:
-		EnemyState.PATROL:
-			patrol(delta)
+func seek_player(delta):
+	var to_player = player.global_position - global_position
+	if to_player.length() < 5:
+		return
 
-		EnemyState.CHASE:
-			chase_and_attack()
+	var primary_dir = to_player.normalized()
+	look_at(player.global_position)
 
-		EnemyState.SEARCH:
-			search_player(delta)
+	var move_dir = primary_dir
+	if _avoid_timer > 0:
+		_avoid_timer -= delta
+		move_dir = _avoid_dir
+
+	move_and_slide(move_dir * search_speed)
+
+	# Stuck detection — if barely moved, try a perpendicular slide direction.
+	_stuck_timer -= delta
+	if _stuck_timer <= 0:
+		_stuck_timer = stuck_check_interval
+		var moved = global_position.distance_to(_last_position)
+		if moved < stuck_distance_threshold and _avoid_timer <= 0:
+			var perp_left = primary_dir.rotated(PI / 2)
+			var perp_right = primary_dir.rotated(-PI / 2)
+			if randf() < 0.5:
+				_avoid_dir = perp_left
+			else:
+				_avoid_dir = perp_right
+			_avoid_timer = avoid_duration
+		_last_position = global_position
 
 func shoot_at_player():
 	if BulletScene == null:
@@ -87,54 +109,39 @@ func shoot_at_player():
 	bullet.damage = 1
 	bullet.owner_node = self
 
-func patrol(delta):
-	patrol_timer -= delta
-
-	if patrol_timer <= 0:
-		choose_new_patrol_direction()
-
-	look_at(global_position + patrol_direction)
-
-	move_and_slide(patrol_direction * patrol_speed)
-
-	if get_slide_count() > 0:
-		choose_new_patrol_direction()
-
-func choose_new_patrol_direction():
-	var angle = rand_range(0, PI * 2)
-	patrol_direction = Vector2(cos(angle), sin(angle)).normalized()
-	patrol_timer = change_direction_time
-
-func chase_and_attack():
+func chase_and_attack(delta):
 	look_at(player.global_position)
 
-	var distance_to_player = global_position.distance_to(player.global_position)
+	var to_player = player.global_position - global_position
+	var dist = to_player.length()
+	if dist < 1.0:
+		return
+	var forward_dir = to_player.normalized()
+	var move = Vector2.ZERO
 
-	if distance_to_player > attack_distance:
-		var direction = (player.global_position - global_position).normalized()
-		move_and_slide(direction * speed)
-	else:
-		if shoot_timer <= 0:
-			shoot_at_player()
-			shoot_timer = shoot_cooldown
+	# Keep inside the engagement band — too far: close in; too close: back off.
+	if dist > preferred_max_distance:
+		move += forward_dir * speed
+	elif dist < preferred_min_distance:
+		move -= forward_dir * speed
 
-func search_player(delta):
-	search_timer -= delta
+	# Pick a strafe direction occasionally so the enemy isn't a stationary target.
+	if _strafe_timer <= 0:
+		_strafe_dir = 1 if randf() < 0.5 else -1
+		_strafe_timer = strafe_change_interval + rand_range(-0.4, 0.4)
+	var perpendicular = forward_dir.rotated(PI / 2.0)
+	move += perpendicular * strafe_speed * _strafe_dir
 
-	var direction_to_last_seen = last_seen_position - global_position
+	move_and_slide(move)
 
-	if direction_to_last_seen.length() > 10:
-		var direction = direction_to_last_seen.normalized()
-		look_at(last_seen_position)
-		move_and_slide(direction * search_speed)
-	else:
-		# Дошёл до последней позиции игрока и осматривается
-		rotation += delta * 2.5
+	# If the strafe pushed us into a wall, flip direction so we don't grind on it.
+	if get_slide_count() > 0:
+		_strafe_dir *= -1
+		_strafe_timer = strafe_change_interval
 
-	if search_timer <= 0:
-		state = EnemyState.PATROL
-		choose_new_patrol_direction()
-
+	if shoot_timer <= 0:
+		shoot_at_player()
+		shoot_timer = shoot_cooldown
 
 func can_see_player() -> bool:
 	var to_player = player.global_position - global_position
@@ -164,6 +171,12 @@ func can_see_player() -> bool:
 
 func take_damage(amount):
 	hp -= amount
+
+	# Wake the enemy — snap to face the attacker and stay in active-engage mode.
+	if player:
+		look_at(player.global_position)
+		_alerted = true
+		_avoid_timer = 0.0
 
 	if DamageNumberScene:
 		var dmg = DamageNumberScene.instance()
@@ -200,6 +213,8 @@ func _update_fov_polygon():
 
 
 func _draw():
+	if not show_fov:
+		return
 	if _fov_points.size() < 3:
 		return
 	draw_colored_polygon(_fov_points, Color(1, 0, 0, 0.15))

@@ -32,6 +32,8 @@ onready var stat_shots = get_node_or_null("UI/GameOverScreen/Center/Card/Margin/
 onready var stat_accuracy = get_node_or_null("UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/AccuracyRow/Value")
 onready var stat_damage_dealt = get_node_or_null("UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/DamageDealtRow/Value")
 onready var stat_damage_taken = get_node_or_null("UI/GameOverScreen/Center/Card/Margin/VBox/StatsVBox/DamageTakenRow/Value")
+onready var hud_bg = get_node_or_null("UI/Hud/HudBg")
+onready var blur_overlay = get_node_or_null("UI/GameOverScreen/BlurOverlay")
 
 var game_over = false
 var initial_enemy_count = 0
@@ -39,6 +41,7 @@ var initial_enemy_count = 0
 
 func _ready():
 	_style_game_over_screen()
+	_style_hud()
 	_build_map()
 	if GameState.is_pvp():
 		NetworkManager.connect("opponent_left", self, "_on_opponent_left")
@@ -135,7 +138,7 @@ func on_player_died(player_node = null):
 		_show_game_over(not local_died)
 	else:
 		_show_game_over(false)
-		stop_enemies()
+	freeze_world()
 
 
 func on_player_won():
@@ -143,13 +146,24 @@ func on_player_won():
 		return
 	game_over = true
 	_show_game_over(true)
-	stop_enemies()
+	freeze_world()
 
 
-func stop_enemies():
+func freeze_world():
 	for enemy in get_tree().get_nodes_in_group("enemy"):
 		enemy.set_physics_process(false)
 		enemy.set_process(false)
+	for p in get_tree().get_nodes_in_group("player"):
+		p.set_physics_process(false)
+		p.set_process(false)
+	for pk in get_tree().get_nodes_in_group("ammo_pickup"):
+		pk.set_process(false)
+	for pk in get_tree().get_nodes_in_group("health_pickup"):
+		pk.set_process(false)
+
+
+func stop_enemies():
+	freeze_world()
 
 
 func _on_opponent_left():
@@ -157,6 +171,7 @@ func _on_opponent_left():
 		return
 	game_over = true
 	_show_game_over(true)
+	freeze_world()
 
 
 # --- Game-over screen ---
@@ -291,6 +306,26 @@ func _wall_rect(tm, x1, y1, x2, y2):
 
 # --- Styling ---
 
+func _style_hud():
+	if hud_bg == null:
+		return
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = Color(0.0588, 0.0667, 0.0941, 0.85)
+	sb.border_color = Color(0.176, 0.192, 0.243, 1)
+	sb.border_width_left = 1
+	sb.border_width_top = 1
+	sb.border_width_right = 1
+	sb.border_width_bottom = 1
+	sb.corner_radius_top_left = 8
+	sb.corner_radius_top_right = 8
+	sb.corner_radius_bottom_left = 8
+	sb.corner_radius_bottom_right = 8
+	sb.shadow_color = Color(0, 0, 0, 0.55)
+	sb.shadow_size = 10
+	sb.shadow_offset = Vector2(0, 4)
+	hud_bg.add_stylebox_override("panel", sb)
+
+
 func _style_game_over_screen():
 	if game_over_card:
 		_apply_card_style(game_over_card)
@@ -298,6 +333,38 @@ func _style_game_over_screen():
 		_style_button(play_again_btn, true)
 	if main_menu_btn:
 		_style_button(main_menu_btn, false)
+	_apply_blur_shader()
+
+
+func _apply_blur_shader():
+	if blur_overlay == null:
+		return
+	var sh = Shader.new()
+	sh.code = """
+shader_type canvas_item;
+
+uniform float blur_radius : hint_range(0.0, 16.0) = 4.5;
+uniform float darken : hint_range(0.0, 1.0) = 0.5;
+
+void fragment() {
+	vec2 px = SCREEN_PIXEL_SIZE * blur_radius;
+	vec3 col = vec3(0.0);
+	float total = 0.0;
+	for (int x = -2; x <= 2; x++) {
+		for (int y = -2; y <= 2; y++) {
+			float w = exp(-float(x * x + y * y) / 4.0);
+			col += textureLod(SCREEN_TEXTURE, SCREEN_UV + vec2(float(x), float(y)) * px, 0.0).rgb * w;
+			total += w;
+		}
+	}
+	col /= total;
+	col *= darken;
+	COLOR = vec4(col, 1.0);
+}
+"""
+	var mat = ShaderMaterial.new()
+	mat.shader = sh
+	blur_overlay.material = mat
 
 
 func _apply_card_style(panel):

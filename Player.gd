@@ -405,9 +405,6 @@ func _draw():
 
 
 func update_enemy_visibility():
-	if not hide_enemies_outside_vision:
-		return
-
 	var targets
 	if GameState.is_pvp():
 		targets = get_tree().get_nodes_in_group("player")
@@ -418,7 +415,55 @@ func update_enemy_visibility():
 		if t == null or t == self:
 			continue
 
-		t.visible = can_see(t)
+		# Visibility uses STRICT cone + LOS (no infinite_vision cheat).
+		var in_fov = is_strictly_in_fov(t) and _has_line_of_sight(t)
+		if hide_enemies_outside_vision:
+			t.visible = in_fov
+
+		if "show_fov" in t:
+			t.show_fov = in_fov
+			if t.has_method("update"):
+				t.update()
+
+
+func _has_line_of_sight(target):
+	var space_state = get_world_2d().direct_space_state
+	var result = space_state.intersect_ray(global_position, target.global_position, [self])
+	if result and result.collider != target:
+		return false
+	return true
+
+
+const TARGET_BODY_RADIUS_ENEMY = 32.0
+const TARGET_BODY_RADIUS_PLAYER = 18.0
+
+func is_strictly_in_fov(target) -> bool:
+	if target == null:
+		return false
+	var to_target = target.global_position - global_position
+	var dist = to_target.length()
+	if dist == 0:
+		return true
+	if dist <= PERIPHERAL_RADIUS:
+		return true
+	if dist > vision_distance:
+		return false
+	var forward = Vector2.RIGHT.rotated(rotation)
+	var angle_to_target = rad2deg(forward.angle_to(to_target.normalized()))
+
+	# Add the angular half-width the target's body subtends at this distance so
+	# we see the enemy when any part of their body crosses into the cone, not
+	# only when the center does.
+	var body_radius = _target_body_radius(target)
+	var angular_half_width = rad2deg(atan2(body_radius, dist))
+
+	return abs(angle_to_target) <= vision_angle / 2.0 + angular_half_width
+
+
+func _target_body_radius(target) -> float:
+	if target and target.is_in_group("enemy"):
+		return TARGET_BODY_RADIUS_ENEMY
+	return TARGET_BODY_RADIUS_PLAYER
 
 
 const PERIPHERAL_RADIUS = 90.0

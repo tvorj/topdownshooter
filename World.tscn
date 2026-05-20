@@ -78,127 +78,150 @@ format = 1
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="Hud" type="Control" parent="UI"]
-margin_left = 16.0
-margin_top = 16.0
-margin_right = 280.0
-margin_bottom = 96.0
+margin_left = 18.0
+margin_top = 18.0
+margin_right = 338.0
+margin_bottom = 128.0
 
-[node name="HudBg" type="ColorRect" parent="UI/Hud"]
+[node name="HudBg" type="Panel" parent="UI/Hud"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0.0588, 0.0667, 0.0941, 0.78 )
 
-[node name="HudBorder" type="ColorRect" parent="UI/Hud"]
-anchor_right = 1.0
-margin_bottom = 2.0
+[node name="HudAccent" type="ColorRect" parent="UI/Hud"]
+margin_left = 8.0
+margin_top = 7.0
+margin_right = 36.0
+margin_bottom = 10.0
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="HpRow" type="HBoxContainer" parent="UI/Hud"]
-margin_left = 12.0
-margin_top = 14.0
-margin_right = 252.0
-margin_bottom = 36.0
-custom_constants/separation = 8
+margin_left = 14.0
+margin_top = 18.0
+margin_right = 306.0
+margin_bottom = 46.0
+custom_constants/separation = 10
 
 [node name="HpIcon" type="Label" parent="UI/Hud/HpRow"]
-margin_top = 4.0
-margin_right = 22.0
-margin_bottom = 18.0
-rect_min_size = Vector2( 22, 0 )
+margin_top = 6.0
+margin_right = 24.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 24, 0 )
 custom_colors/font_color = Color( 1, 0.388, 0.388, 1 )
 text = "HP"
 
 [node name="HpBarBg" type="ColorRect" parent="UI/Hud/HpRow"]
-margin_left = 30.0
-margin_right = 170.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 140, 14 )
+margin_left = 34.0
+margin_right = 214.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 180, 18 )
 color = Color( 0.039, 0.047, 0.067, 1 )
 
-[node name="HpBarFill" type="ColorRect" parent="UI/Hud/HpRow/HpBarBg"]
+[node name="HpBarInset" type="ColorRect" parent="UI/Hud/HpRow/HpBarBg"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 1.0
 margin_top = 1.0
 margin_right = -1.0
 margin_bottom = -1.0
+color = Color( 0.08, 0.09, 0.12, 1 )
+
+[node name="HpBarFill" type="ColorRect" parent="UI/Hud/HpRow/HpBarBg"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 2.0
+margin_top = 2.0
+margin_right = -2.0
+margin_bottom = -2.0
 color = Color( 0.298, 0.788, 0.345, 1 )
 
+[node name="HpBarGloss" type="ColorRect" parent="UI/Hud/HpRow/HpBarBg/HpBarFill"]
+anchor_right = 1.0
+anchor_bottom = 0.5
+color = Color( 1, 1, 1, 0.13 )
+mouse_filter = 2
+
 [node name="HpText" type="Label" parent="UI/Hud/HpRow"]
-margin_left = 178.0
-margin_top = 4.0
-margin_right = 223.0
-margin_bottom = 18.0
+margin_left = 224.0
+margin_top = 6.0
+margin_right = 292.0
+margin_bottom = 22.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "10 / 10"
 
+[node name="RowDivider" type="ColorRect" parent="UI/Hud"]
+margin_left = 14.0
+margin_top = 56.0
+margin_right = 306.0
+margin_bottom = 57.0
+color = Color( 0.235, 0.247, 0.298, 0.5 )
+
 [node name="AmmoRow" type="HBoxContainer" parent="UI/Hud"]
-margin_left = 12.0
-margin_top = 44.0
-margin_right = 252.0
-margin_bottom = 66.0
-custom_constants/separation = 8
+margin_left = 14.0
+margin_top = 66.0
+margin_right = 306.0
+margin_bottom = 94.0
+custom_constants/separation = 10
 
 [node name="AmmoIcon" type="Label" parent="UI/Hud/AmmoRow"]
-margin_top = 4.0
-margin_right = 22.0
-margin_bottom = 18.0
-rect_min_size = Vector2( 22, 0 )
+margin_top = 6.0
+margin_right = 24.0
+margin_bottom = 22.0
+rect_min_size = Vector2( 24, 0 )
 custom_colors/font_color = Color( 1, 0.65, 0.243, 1 )
 text = "AM"
 
 [node name="AmmoIcons" type="HBoxContainer" parent="UI/Hud/AmmoRow"]
-margin_left = 30.0
-margin_right = 134.0
-margin_bottom = 22.0
+margin_left = 34.0
+margin_right = 174.0
+margin_bottom = 28.0
 custom_constants/separation = 4
 
 [node name="Bullet1" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
-margin_right = 14.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 14, 14 )
+margin_right = 18.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet2" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
-margin_left = 18.0
-margin_right = 32.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 14, 14 )
+margin_left = 22.0
+margin_right = 40.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet3" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
-margin_left = 36.0
-margin_right = 50.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 14, 14 )
+margin_left = 44.0
+margin_right = 62.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet4" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
-margin_left = 54.0
-margin_right = 68.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 14, 14 )
+margin_left = 66.0
+margin_right = 84.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet5" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
-margin_left = 72.0
-margin_right = 86.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 14, 14 )
+margin_left = 88.0
+margin_right = 106.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="Bullet6" type="ColorRect" parent="UI/Hud/AmmoRow/AmmoIcons"]
-margin_left = 90.0
-margin_right = 104.0
-margin_bottom = 22.0
-rect_min_size = Vector2( 14, 14 )
+margin_left = 110.0
+margin_right = 128.0
+margin_bottom = 28.0
+rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="AmmoText" type="Label" parent="UI/Hud/AmmoRow"]
-margin_left = 142.0
-margin_top = 4.0
-margin_right = 179.0
-margin_bottom = 18.0
+margin_left = 184.0
+margin_top = 6.0
+margin_right = 292.0
+margin_bottom = 22.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "6 / 24"
 
@@ -207,10 +230,20 @@ visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 
+[node name="BlurBackBuffer" type="BackBufferCopy" parent="UI/GameOverScreen"]
+copy_mode = 2
+
+[node name="BlurOverlay" type="ColorRect" parent="UI/GameOverScreen"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color( 1, 1, 1, 1 )
+
 [node name="Backdrop" type="ColorRect" parent="UI/GameOverScreen"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color( 0, 0, 0, 0.6 )
+mouse_filter = 2
+color = Color( 0, 0, 0, 0.35 )
 
 [node name="Center" type="CenterContainer" parent="UI/GameOverScreen"]
 anchor_right = 1.0
