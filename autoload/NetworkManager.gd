@@ -54,6 +54,22 @@ func _start_world():
 	emit_signal("game_started")
 	get_tree().change_scene("res://world/World.tscn")
 
+func request_restart():
+	if get_tree().network_peer == null:
+		return
+	if get_tree().is_network_server():
+		_broadcast_restart()
+	else:
+		rpc_id(1, "_server_handle_restart_request")
+
+remote func _server_handle_restart_request():
+	if get_tree().is_network_server():
+		_broadcast_restart()
+
+func _broadcast_restart():
+	rpc("start_game")
+	call_deferred("_start_world")
+
 func _on_peer_disconnected(id):
 	emit_signal("opponent_left")
 

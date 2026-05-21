@@ -121,9 +121,10 @@ func _process(delta):
 
 func _restart():
 	if GameState.is_pvp():
-		NetworkManager.leave()
-		GameState.mode = GameState.Mode.SINGLE
-		get_tree().change_scene("res://ui/MainMenu.tscn")
+		if get_tree().network_peer == null:
+			_go_to_menu()
+		else:
+			NetworkManager.request_restart()
 	else:
 		get_tree().reload_current_scene()
 
@@ -175,6 +176,8 @@ func stop_enemies():
 
 
 func _on_opponent_left():
+	if play_again_btn:
+		play_again_btn.disabled = true
 	if game_over:
 		return
 	game_over = true
