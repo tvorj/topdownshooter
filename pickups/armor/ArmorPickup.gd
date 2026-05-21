@@ -1,6 +1,6 @@
 extends Area2D
 
-export var armor_amount = 4
+export var armor_amount = 5
 export var life_time = 20.0
 export var bob_speed = 4.0
 export var bob_height = 4.0

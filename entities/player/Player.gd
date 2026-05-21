@@ -27,7 +27,7 @@ export var hide_enemies_outside_vision = true
 export var magazine_size = 6
 export var reserve_ammo = 24
 export var max_reserve_ammo = 36
-export var reload_time = 1.2
+export var reload_time = 2.34
 export var shoot_cooldown = 0.25
 
 var current_ammo = 0

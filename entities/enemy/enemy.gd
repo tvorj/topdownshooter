@@ -8,6 +8,9 @@ export var vision_angle = 45
 
 export(PackedScene) var BulletScene
 export var shoot_cooldown = 1.0
+
+const _SND_SHOOT = preload("res://assets/audio/pistolshot.wav")
+var _snd_shoot = null
 export var attack_distance = 350
 export var preferred_min_distance = 230.0
 export var preferred_max_distance = 330.0
@@ -44,6 +47,11 @@ func _ready():
 	randomize()
 	_last_position = global_position
 	_stuck_timer = stuck_check_interval
+	_snd_shoot = AudioStreamPlayer.new()
+	_snd_shoot.stream = _SND_SHOOT
+	_snd_shoot.volume_db = -18.0
+	_snd_shoot.pitch_scale = 0.9
+	call_deferred("add_child", _snd_shoot)
 
 	var players = get_tree().get_nodes_in_group("player")
 
@@ -116,6 +124,8 @@ func shoot_at_player():
 	bullet.direction = (player.global_position - global_position).normalized()
 	bullet.damage = 1
 	bullet.owner_node = self
+	if _snd_shoot:
+		_snd_shoot.play()
 
 func chase_and_attack(delta):
 	look_at(player.global_position)
