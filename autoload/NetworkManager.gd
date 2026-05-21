@@ -7,11 +7,11 @@ signal game_started
 var peer = null
 
 func _ready():
-	get_tree().connect("network_peer_connected", self, "_on_peer_connected")
-	get_tree().connect("network_peer_disconnected", self, "_on_peer_disconnected")
-	get_tree().connect("connected_to_server", self, "_on_connected_to_server")
-	get_tree().connect("connection_failed", self, "_on_connection_failed")
-	get_tree().connect("server_disconnected", self, "_on_server_disconnected")
+	get_tree().connect("network_peer_connected", self , "_on_peer_connected")
+	get_tree().connect("network_peer_disconnected", self , "_on_peer_disconnected")
+	get_tree().connect("connected_to_server", self , "_on_connected_to_server")
+	get_tree().connect("connection_failed", self , "_on_connection_failed")
+	get_tree().connect("server_disconnected", self , "_on_server_disconnected")
 
 func host():
 	leave()
@@ -52,7 +52,7 @@ remote func start_game():
 
 func _start_world():
 	emit_signal("game_started")
-	get_tree().change_scene("res://wolrd/World.tscn")
+	get_tree().change_scene("res://world/World.tscn")
 
 func _on_peer_disconnected(id):
 	emit_signal("opponent_left")
