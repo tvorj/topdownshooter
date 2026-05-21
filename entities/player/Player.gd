@@ -502,9 +502,43 @@ func _update_fov_polygon():
 func _draw():
 	if not _is_local() or _fov_points.size() < 3:
 		return
-	draw_colored_polygon(_fov_points, Color(1, 1, 0, 0.1))
-	draw_line(Vector2.ZERO, _fov_points[1], Color(1, 1, 0, 0.3), 1.0)
-	draw_line(Vector2.ZERO, _fov_points[_fov_points.size() - 2], Color(1, 1, 0, 0.3), 1.0)
+
+	var half_a = deg2rad(vision_angle / 2.0)
+	var steps = 30
+	var R = 6000.0
+	var dark = Color(0.01, 0.03, 0.07, 0.88)
+	var n = _fov_points.size()
+
+	# Behind the player
+	draw_colored_polygon(PoolVector2Array([
+		Vector2(-R, -R), Vector2(-R, R), Vector2(0.0, R), Vector2(0.0, -R)
+	]), dark)
+	# Above the cone
+	draw_colored_polygon(PoolVector2Array([
+		Vector2(0.0, -R), Vector2(R, -R),
+		Vector2.RIGHT.rotated(-half_a) * R, Vector2.ZERO
+	]), dark)
+	# Below the cone
+	draw_colored_polygon(PoolVector2Array([
+		Vector2.ZERO,
+		Vector2.RIGHT.rotated(half_a) * R,
+		Vector2(R, R), Vector2(0.0, R)
+	]), dark)
+
+	# Inside cone, beyond wall hits — one trapezoid per ray pair
+	for i in range(1, n - 2):
+		var a1 = -half_a + (half_a * 2.0 / steps) * (i - 1)
+		var a2 = -half_a + (half_a * 2.0 / steps) * i
+		draw_colored_polygon(PoolVector2Array([
+			_fov_points[i], _fov_points[i + 1],
+			Vector2.RIGHT.rotated(a2) * R,
+			Vector2.RIGHT.rotated(a1) * R
+		]), dark)
+
+	# Warm flashlight beam overlay
+	draw_colored_polygon(_fov_points, Color(1.0, 0.95, 0.8, 0.18))
+	draw_line(Vector2.ZERO, _fov_points[1], Color(1.0, 0.95, 0.8, 0.55), 1.5)
+	draw_line(Vector2.ZERO, _fov_points[n - 2], Color(1.0, 0.95, 0.8, 0.55), 1.5)
 
 
 func update_enemy_visibility():
