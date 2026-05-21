@@ -52,7 +52,7 @@ remote func start_game():
 
 func _start_world():
 	emit_signal("game_started")
-	get_tree().change_scene("res://World.tscn")
+	get_tree().change_scene("res://wolrd/World.tscn")
 
 func _on_peer_disconnected(id):
 	emit_signal("opponent_left")

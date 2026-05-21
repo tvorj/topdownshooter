@@ -285,7 +285,7 @@ func _show_error(msg):
 
 func _on_SingleBtn_pressed():
 	GameState.mode = GameState.Mode.SINGLE
-	get_tree().change_scene("res://World.tscn")
+	get_tree().change_scene("res://world/World.tscn")
 
 func _on_HostBtn_pressed():
 	if not NetworkManager.host():

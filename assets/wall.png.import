@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ascent+1_1687467400032-2721059462.jpg-b2726ed45002be570dd07843ab691db6.stex"
+path="res://.import/wall.png-6b1d64fa3ea5498e75707962a9c3b56c.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ascent+1_1687467400032-2721059462.jpg"
-dest_files=[ "res://.import/ascent+1_1687467400032-2721059462.jpg-b2726ed45002be570dd07843ab691db6.stex" ]
+source_file="res://assets/wall.png"
+dest_files=[ "res://.import/wall.png-6b1d64fa3ea5498e75707962a9c3b56c.stex" ]
 
 [params]
 

@@ -1,7 +1,7 @@
 extends Node2D
 
-const PlayerScene = preload("res://Player.tscn")
-const EnemyScene = preload("res://enemy.tscn")
+const PlayerScene = preload("res://entities/player/Player.tscn")
+const EnemyScene = preload("res://entities/enemy/enemy.tscn")
 
 const SPAWN_SINGLE  = Vector2(208, 784)
 const SPAWN_HOST    = Vector2(208, 784)
@@ -117,7 +117,7 @@ func _restart():
 	if GameState.is_pvp():
 		NetworkManager.leave()
 		GameState.mode = GameState.Mode.SINGLE
-		get_tree().change_scene("res://MainMenu.tscn")
+		get_tree().change_scene("res://ui/MainMenu.tscn")
 	else:
 		get_tree().reload_current_scene()
 
@@ -125,7 +125,7 @@ func _restart():
 func _go_to_menu():
 	NetworkManager.leave()
 	GameState.mode = GameState.Mode.SINGLE
-	get_tree().change_scene("res://MainMenu.tscn")
+	get_tree().change_scene("res://ui/MainMenu.tscn")
 
 
 func on_player_died(player_node = null):
