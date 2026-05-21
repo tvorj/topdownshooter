@@ -4,6 +4,12 @@ extends KinematicBody2D
 export(PackedScene) var BulletScene
 export(PackedScene) var DamageNumberScene
 
+# --- Audio ---
+const _SND_SHOOT  = preload("res://assets/audio/pistolshot.wav")
+const _SND_RELOAD = preload("res://assets/audio/pistolreload.wav")
+var _snd_shoot = null
+var _snd_reload = null
+
 # --- Player stats ---
 export var speed = 200
 export var hp = 10
@@ -89,6 +95,14 @@ func _ready():
 	puppet_pos = global_position
 	puppet_rot = rotation
 	stats.start_ms = OS.get_ticks_msec()
+	_snd_shoot = AudioStreamPlayer.new()
+	_snd_shoot.stream = _SND_SHOOT
+	_snd_shoot.volume_db = -6.0
+	call_deferred("add_child", _snd_shoot)
+	_snd_reload = AudioStreamPlayer.new()
+	_snd_reload.stream = _SND_RELOAD
+	_snd_reload.volume_db = -6.0
+	call_deferred("add_child", _snd_reload)
 	if _is_local():
 		update_hp_ui()
 		update_ammo_ui()
@@ -294,7 +308,8 @@ func try_shoot():
 	_spawn_bullet_local(shoot_position, shoot_direction)
 	if GameState.is_pvp():
 		rpc("net_spawn_bullet", shoot_position, shoot_direction)
-
+	if _snd_shoot:
+		_snd_shoot.play()
 	current_ammo -= 1
 	shoot_timer = shoot_cooldown
 	stats.shots += 1
@@ -356,6 +371,8 @@ func start_reload():
 
 	is_reloading = true
 	reload_timer = reload_time
+	if _snd_reload:
+		_snd_reload.play()
 	update_ammo_ui()
 
 
