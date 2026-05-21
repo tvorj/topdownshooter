@@ -1,5 +1,7 @@
 extends Area2D
 
+const _SND_PICKUP = preload("res://assets/audio/ammopickup.ogg")
+
 export var ammo_amount = 6
 export var life_time = 20.0
 export var bob_speed = 4.0
@@ -95,7 +97,7 @@ func _on_AmmoPickup_body_entered(body):
 func pickup():
 	picked = true
 	print("AmmoPickup collected")
-
+	_play_pickup_sound()
 	tween.stop_all()
 
 	tween.interpolate_property(
@@ -122,6 +124,16 @@ func pickup():
 
 	yield(tween, "tween_all_completed")
 	queue_free()
+
+
+func _play_pickup_sound():
+	var snd = AudioStreamPlayer.new()
+	snd.stream = _SND_PICKUP
+	snd.stream.loop = false
+	snd.volume_db = -6.0
+	get_parent().add_child(snd)
+	snd.play()
+	snd.connect("finished", snd, "queue_free")
 
 
 func despawn():

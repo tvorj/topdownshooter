@@ -10,7 +10,9 @@ export(PackedScene) var BulletScene
 export var shoot_cooldown = 1.0
 
 const _SND_SHOOT = preload("res://assets/audio/pistolshot.wav")
+const _SND_HIT   = preload("res://assets/audio/playerhitenemy.ogg")
 var _snd_shoot = null
+var _snd_hit = null
 export var attack_distance = 350
 export var preferred_min_distance = 230.0
 export var preferred_max_distance = 330.0
@@ -52,6 +54,10 @@ func _ready():
 	_snd_shoot.volume_db = -18.0
 	_snd_shoot.pitch_scale = 0.9
 	call_deferred("add_child", _snd_shoot)
+	_snd_hit = AudioStreamPlayer.new()
+	_snd_hit.stream = _SND_HIT
+	_snd_hit.volume_db = -8.0
+	call_deferred("add_child", _snd_hit)
 
 	var players = get_tree().get_nodes_in_group("player")
 
@@ -199,6 +205,9 @@ func can_see_player() -> bool:
 
 func take_damage(amount):
 	hp -= amount
+
+	if _snd_hit:
+		_snd_hit.play()
 
 	# Wake the enemy — snap to face the attacker and stay in active-engage mode.
 	if player:

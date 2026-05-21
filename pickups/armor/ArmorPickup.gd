@@ -1,5 +1,7 @@
 extends Area2D
 
+const _SND_PICKUP = preload("res://assets/audio/armorpickup.ogg")
+
 export var armor_amount = 5
 export var life_time = 20.0
 export var bob_speed = 4.0
@@ -64,8 +66,19 @@ func _on_ArmorPickup_body_entered(body):
 			pickup()
 
 
+func _play_pickup_sound():
+	var snd = AudioStreamPlayer.new()
+	snd.stream = _SND_PICKUP
+	snd.stream.loop = false
+	snd.volume_db = -6.0
+	get_parent().add_child(snd)
+	snd.play()
+	snd.connect("finished", snd, "queue_free")
+
+
 func pickup():
 	picked = true
+	_play_pickup_sound()
 	tween.stop_all()
 	tween.interpolate_property(self, "scale",
 		scale, Vector2(1.4, 1.4),

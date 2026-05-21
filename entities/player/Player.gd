@@ -7,8 +7,10 @@ export(PackedScene) var DamageNumberScene
 # --- Audio ---
 const _SND_SHOOT  = preload("res://assets/audio/pistolshot.wav")
 const _SND_RELOAD = preload("res://assets/audio/pistolreload.wav")
+const _SND_HIT    = preload("res://assets/audio/enemyhitplayer.ogg")
 var _snd_shoot = null
 var _snd_reload = null
+var _snd_hit = null
 
 # --- Player stats ---
 export var speed = 200
@@ -103,6 +105,10 @@ func _ready():
 	_snd_reload.stream = _SND_RELOAD
 	_snd_reload.volume_db = -6.0
 	call_deferred("add_child", _snd_reload)
+	_snd_hit = AudioStreamPlayer.new()
+	_snd_hit.stream = _SND_HIT
+	_snd_hit.volume_db = -4.0
+	call_deferred("add_child", _snd_hit)
 	if _is_local():
 		update_hp_ui()
 		update_ammo_ui()
@@ -486,6 +492,8 @@ func _apply_armor_hp(new_armor, new_hp, amount):
 	var old_hp = hp
 	if amount > 0 and _is_local():
 		stats.damage_taken += amount
+		if _snd_hit:
+			_snd_hit.play()
 	armor = new_armor
 	hp = new_hp
 	update_hp_ui()
