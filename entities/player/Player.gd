@@ -33,6 +33,14 @@ var shoot_timer = 0.0
 var is_dead = false
 var _fov_points := PoolVector2Array()
 
+# --- Scan ability ---
+const ABILITY_DURATION = 5.0
+const ABILITY_COOLDOWN = 10.0
+var ability_active = false
+var ability_timer = 0.0
+var ability_cooldown_timer = 0.0
+var _ability_key_was_pressed = false
+
 # --- Stats ---
 var stats = {
 	"start_ms": 0,
@@ -115,6 +123,20 @@ func _process(delta):
 		return
 
 	look_at(get_global_mouse_position())
+
+	if ability_active:
+		ability_timer -= delta
+		if ability_timer <= 0.0:
+			ability_active = false
+			ability_cooldown_timer = ABILITY_COOLDOWN
+	elif ability_cooldown_timer > 0.0:
+		ability_cooldown_timer -= delta
+	var e_now = Input.is_key_pressed(KEY_E)
+	if e_now and not _ability_key_was_pressed and not ability_active and ability_cooldown_timer <= 0.0:
+		ability_active = true
+		ability_timer = ABILITY_DURATION
+	_ability_key_was_pressed = e_now
+
 	_update_fov_polygon()
 	update()
 	update_enemy_visibility()
@@ -474,8 +496,9 @@ func _update_fov_polygon():
 		_fov_points = PoolVector2Array()
 		return
 
-	var half_angle = deg2rad(vision_angle / 2.0)
-	var steps = 30
+	var eff_angle = 360.0 if ability_active else float(vision_angle)
+	var half_angle = deg2rad(eff_angle / 2.0)
+	var steps = 60 if ability_active else 30
 	var space_state = get_world_2d().direct_space_state
 
 	var exclude = [self]
@@ -503,29 +526,31 @@ func _draw():
 	if not _is_local() or _fov_points.size() < 3:
 		return
 
-	var half_a = deg2rad(vision_angle / 2.0)
-	var steps = 30
+	var n = _fov_points.size()
+	var steps = n - 3
+	var eff_angle = 360.0 if ability_active else float(vision_angle)
+	var half_a = deg2rad(eff_angle / 2.0)
 	var R = 6000.0
 	var dark = Color(0.01, 0.03, 0.07, 0.88)
-	var n = _fov_points.size()
 
-	# Behind the player
-	draw_colored_polygon(PoolVector2Array([
-		Vector2(-R, -R), Vector2(-R, R), Vector2(0.0, R), Vector2(0.0, -R)
-	]), dark)
-	# Above the cone
-	draw_colored_polygon(PoolVector2Array([
-		Vector2(0.0, -R), Vector2(R, -R),
-		Vector2.RIGHT.rotated(-half_a) * R, Vector2.ZERO
-	]), dark)
-	# Below the cone
-	draw_colored_polygon(PoolVector2Array([
-		Vector2.ZERO,
-		Vector2.RIGHT.rotated(half_a) * R,
-		Vector2(R, R), Vector2(0.0, R)
-	]), dark)
+	if not ability_active:
+		# Behind the player
+		draw_colored_polygon(PoolVector2Array([
+			Vector2(-R, -R), Vector2(-R, R), Vector2(0.0, R), Vector2(0.0, -R)
+		]), dark)
+		# Above the cone
+		draw_colored_polygon(PoolVector2Array([
+			Vector2(0.0, -R), Vector2(R, -R),
+			Vector2.RIGHT.rotated(-half_a) * R, Vector2.ZERO
+		]), dark)
+		# Below the cone
+		draw_colored_polygon(PoolVector2Array([
+			Vector2.ZERO,
+			Vector2.RIGHT.rotated(half_a) * R,
+			Vector2(R, R), Vector2(0.0, R)
+		]), dark)
 
-	# Inside cone, beyond wall hits — one trapezoid per ray pair
+	# Beyond wall hits — one trapezoid per ray pair
 	for i in range(1, n - 2):
 		var a1 = -half_a + (half_a * 2.0 / steps) * (i - 1)
 		var a2 = -half_a + (half_a * 2.0 / steps) * i
@@ -535,10 +560,11 @@ func _draw():
 			Vector2.RIGHT.rotated(a1) * R
 		]), dark)
 
-	# Warm flashlight beam overlay
+	# Warm overlay
 	draw_colored_polygon(_fov_points, Color(1.0, 0.95, 0.8, 0.18))
-	draw_line(Vector2.ZERO, _fov_points[1], Color(1.0, 0.95, 0.8, 0.55), 1.5)
-	draw_line(Vector2.ZERO, _fov_points[n - 2], Color(1.0, 0.95, 0.8, 0.55), 1.5)
+	if not ability_active:
+		draw_line(Vector2.ZERO, _fov_points[1], Color(1.0, 0.95, 0.8, 0.55), 1.5)
+		draw_line(Vector2.ZERO, _fov_points[n - 2], Color(1.0, 0.95, 0.8, 0.55), 1.5)
 
 
 func update_enemy_visibility():
@@ -585,15 +611,12 @@ func is_strictly_in_fov(target) -> bool:
 		return true
 	if dist > vision_distance:
 		return false
+	if ability_active:
+		return true
 	var forward = Vector2.RIGHT.rotated(rotation)
 	var angle_to_target = rad2deg(forward.angle_to(to_target.normalized()))
-
-	# Add the angular half-width the target's body subtends at this distance so
-	# we see the enemy when any part of their body crosses into the cone, not
-	# only when the center does.
 	var body_radius = _target_body_radius(target)
 	var angular_half_width = rad2deg(atan2(body_radius, dist))
-
 	return abs(angle_to_target) <= vision_angle / 2.0 + angular_half_width
 
 
