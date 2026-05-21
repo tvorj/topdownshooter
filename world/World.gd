@@ -40,6 +40,12 @@ var initial_enemy_count = 0
 
 
 func _ready():
+	var music = AudioStreamPlayer.new()
+	music.stream = preload("res://assets/music/gameplay.mp3")
+	music.stream.loop = true
+	music.volume_db = -8.0
+	music.autoplay = true
+	add_child(music)
 	_style_game_over_screen()
 	_style_hud()
 	_build_map()

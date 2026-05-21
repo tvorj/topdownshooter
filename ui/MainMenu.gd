@@ -39,6 +39,12 @@ var _connect_base_msg = ""
 
 func _ready():
 	randomize()
+	var music = AudioStreamPlayer.new()
+	music.stream = preload("res://assets/music/main menu.mp3")
+	music.stream.loop = true
+	music.volume_db = -8.0
+	music.autoplay = true
+	add_child(music)
 	NetworkManager.connect("join_failed", self, "_on_join_failed")
 	NetworkManager.connect("game_started", self, "_on_game_started")
 	NetworkManager.leave()
