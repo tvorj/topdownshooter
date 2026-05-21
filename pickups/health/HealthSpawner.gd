@@ -14,8 +14,7 @@ var spawn_timer = 0.0
 func _ready():
 	randomize()
 	if spawn_on_start:
-		for _i in range(max_pickups):
-			try_spawn_pickup()
+		call_deferred("_initial_spawn")
 	spawn_timer = spawn_interval
 
 
@@ -26,6 +25,11 @@ func _process(delta):
 	spawn_timer -= delta
 	if spawn_timer <= 0:
 		spawn_timer = spawn_interval
+		try_spawn_pickup()
+
+
+func _initial_spawn():
+	for _i in range(max_pickups):
 		try_spawn_pickup()
 
 

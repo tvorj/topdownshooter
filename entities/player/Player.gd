@@ -642,14 +642,18 @@ func _draw():
 	for i in range(1, n - 2):
 		var a1 = -half_a + (half_a * 2.0 / steps) * (i - 1)
 		var a2 = -half_a + (half_a * 2.0 / steps) * i
-		draw_colored_polygon(PoolVector2Array([
-			_fov_points[i], _fov_points[i + 1],
-			Vector2.RIGHT.rotated(a2) * R,
-			Vector2.RIGHT.rotated(a1) * R
-		]), dark)
+		var p1 = _fov_points[i]
+		var p2 = _fov_points[i + 1]
+		var p3 = Vector2.RIGHT.rotated(a2) * R
+		var p4 = Vector2.RIGHT.rotated(a1) * R
+		var cross = (p2 - p1).cross(p4 - p1)
+		if abs(cross) < 1.0:
+			continue
+		draw_colored_polygon(PoolVector2Array([p1, p2, p3, p4]), dark)
 
 	# Warm overlay
-	draw_colored_polygon(_fov_points, Color(1.0, 0.95, 0.8, 0.18))
+	if _fov_points.size() >= 4:
+		draw_colored_polygon(_fov_points, Color(1.0, 0.95, 0.8, 0.18))
 	if not ability_active:
 		draw_line(Vector2.ZERO, _fov_points[1], Color(1.0, 0.95, 0.8, 0.55), 1.5)
 		draw_line(Vector2.ZERO, _fov_points[n - 2], Color(1.0, 0.95, 0.8, 0.55), 1.5)
