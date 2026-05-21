@@ -105,16 +105,16 @@ margin_bottom = 46.0
 custom_constants/separation = 10
 
 [node name="HpIcon" type="Label" parent="UI/Hud/HpRow"]
-margin_top = 6.0
+margin_top = 7.0
 margin_right = 60.0
-margin_bottom = 22.0
+margin_bottom = 21.0
 rect_min_size = Vector2( 60, 0 )
 custom_colors/font_color = Color( 1, 0.388, 0.388, 1 )
 text = "HEALTH"
 
 [node name="HpBarBg" type="ColorRect" parent="UI/Hud/HpRow"]
-margin_left = 34.0
-margin_right = 214.0
+margin_left = 70.0
+margin_right = 250.0
 margin_bottom = 28.0
 rect_min_size = Vector2( 180, 18 )
 color = Color( 0.039, 0.047, 0.067, 1 )
@@ -140,14 +140,14 @@ color = Color( 0.298, 0.788, 0.345, 1 )
 [node name="HpBarGloss" type="ColorRect" parent="UI/Hud/HpRow/HpBarBg/HpBarFill"]
 anchor_right = 1.0
 anchor_bottom = 0.5
-color = Color( 1, 1, 1, 0.13 )
 mouse_filter = 2
+color = Color( 1, 1, 1, 0.13 )
 
 [node name="HpText" type="Label" parent="UI/Hud/HpRow"]
-margin_left = 224.0
-margin_top = 6.0
-margin_right = 292.0
-margin_bottom = 22.0
+margin_left = 260.0
+margin_top = 7.0
+margin_right = 305.0
+margin_bottom = 21.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "10 / 10"
 
@@ -159,16 +159,16 @@ margin_bottom = 80.0
 custom_constants/separation = 10
 
 [node name="ArmorIcon" type="Label" parent="UI/Hud/ArmorRow"]
-margin_top = 6.0
+margin_top = 7.0
 margin_right = 60.0
-margin_bottom = 22.0
+margin_bottom = 21.0
 rect_min_size = Vector2( 60, 0 )
 custom_colors/font_color = Color( 0.345, 0.65, 1, 1 )
 text = "ARMOR"
 
 [node name="ArmorBarBg" type="ColorRect" parent="UI/Hud/ArmorRow"]
-margin_left = 34.0
-margin_right = 214.0
+margin_left = 70.0
+margin_right = 250.0
 margin_bottom = 28.0
 rect_min_size = Vector2( 180, 18 )
 color = Color( 0.039, 0.047, 0.067, 1 )
@@ -183,25 +183,23 @@ margin_bottom = -1.0
 color = Color( 0.08, 0.09, 0.12, 1 )
 
 [node name="ArmorBarFill" type="ColorRect" parent="UI/Hud/ArmorRow/ArmorBarBg"]
-anchor_right = 0.0
 anchor_bottom = 1.0
 margin_left = 2.0
 margin_top = 2.0
-margin_right = 0.0
 margin_bottom = -2.0
 color = Color( 0.345, 0.65, 1, 1 )
 
 [node name="ArmorBarGloss" type="ColorRect" parent="UI/Hud/ArmorRow/ArmorBarBg/ArmorBarFill"]
 anchor_right = 1.0
 anchor_bottom = 0.5
-color = Color( 1, 1, 1, 0.13 )
 mouse_filter = 2
+color = Color( 1, 1, 1, 0.13 )
 
 [node name="ArmorText" type="Label" parent="UI/Hud/ArmorRow"]
-margin_left = 224.0
-margin_top = 6.0
-margin_right = 292.0
-margin_bottom = 22.0
+margin_left = 260.0
+margin_top = 7.0
+margin_right = 289.0
+margin_bottom = 21.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "0 / 5"
 
@@ -220,16 +218,16 @@ margin_bottom = 128.0
 custom_constants/separation = 10
 
 [node name="AmmoIcon" type="Label" parent="UI/Hud/AmmoRow"]
-margin_top = 6.0
+margin_top = 7.0
 margin_right = 60.0
-margin_bottom = 22.0
+margin_bottom = 21.0
 rect_min_size = Vector2( 60, 0 )
 custom_colors/font_color = Color( 1, 0.65, 0.243, 1 )
 text = "AMMO"
 
 [node name="AmmoIcons" type="HBoxContainer" parent="UI/Hud/AmmoRow"]
-margin_left = 34.0
-margin_right = 174.0
+margin_left = 70.0
+margin_right = 198.0
 margin_bottom = 28.0
 custom_constants/separation = 4
 
@@ -275,10 +273,10 @@ rect_min_size = Vector2( 18, 18 )
 color = Color( 1, 0.65, 0.243, 1 )
 
 [node name="AmmoText" type="Label" parent="UI/Hud/AmmoRow"]
-margin_left = 184.0
-margin_top = 6.0
-margin_right = 292.0
-margin_bottom = 22.0
+margin_left = 208.0
+margin_top = 7.0
+margin_right = 245.0
+margin_bottom = 21.0
 custom_colors/font_color = Color( 0.95, 0.96, 0.98, 1 )
 text = "6 / 24"
 
@@ -306,7 +304,6 @@ copy_mode = 2
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color( 1, 1, 1, 1 )
 
 [node name="Backdrop" type="ColorRect" parent="UI/GameOverScreen"]
 anchor_right = 1.0
@@ -451,8 +448,8 @@ position = Vector2( 2064, 1296 )
 
 [node name="AmmoSpawner" type="Node2D" parent="."]
 script = ExtResource( 5 )
-max_pickups = 5
 AmmoPickupScene = ExtResource( 6 )
+max_pickups = 5
 
 [node name="HealthSpawnPoints" type="Node2D" parent="."]
 
@@ -470,8 +467,8 @@ position = Vector2( 1296, 976 )
 
 [node name="HealthSpawner" type="Node2D" parent="."]
 script = ExtResource( 7 )
-max_pickups = 4
 HealthPickupScene = ExtResource( 8 )
+max_pickups = 4
 
 [node name="ArmorSpawnPoints" type="Node2D" parent="."]
 
@@ -486,9 +483,9 @@ position = Vector2( 1296, 624 )
 
 [node name="ArmorSpawner" type="Node2D" parent="."]
 script = ExtResource( 9 )
+ArmorPickupScene = ExtResource( 10 )
 spawn_interval = 25.0
 max_pickups = 1
-ArmorPickupScene = ExtResource( 10 )
 
 [connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/PlayAgainBtn" to="." method="_on_PlayAgainBtn_pressed"]
 [connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/MainMenuBtn" to="." method="_on_MainMenuBtn_pressed"]
