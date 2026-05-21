@@ -7,7 +7,9 @@ export var bob_height = 4.0
 
 onready var tween = $Tween
 onready var polygon = $Polygon2D
+onready var sprite = $Sprite
 onready var collision_shape = $CollisionShape2D
+
 
 var base_position = Vector2.ZERO
 var age = 0.0
@@ -25,9 +27,11 @@ func _ready():
 	z_index = 50
 
 	if polygon:
-		polygon.z_index = 50
-		polygon.visible = true
-		polygon.color = Color(1, 0.8, 0.1, 1)
+		polygon.visible = false
+
+	if sprite:
+		sprite.visible = true
+		sprite.z_index = 50
 
 	if collision_shape:
 		collision_shape.disabled = false
@@ -61,7 +65,6 @@ func _ready():
 	)
 
 	tween.start()
-
 
 func _process(delta):
 	if picked:

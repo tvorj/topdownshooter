@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://icon.png" type="Texture" id=1]
+[ext_resource path="res://assets/characters/enemy_robot_machine.png" type="Texture" id=1]
 [ext_resource path="res://enemy.gd" type="Script" id=2]
 [ext_resource path="res://Bullet.tscn" type="PackedScene" id=3]
 [ext_resource path="res://DamageNumber.tscn" type="PackedScene" id=4]

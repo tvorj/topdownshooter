@@ -349,8 +349,8 @@ position = Vector2( 2064, 1296 )
 
 [node name="AmmoSpawner" type="Node2D" parent="."]
 script = ExtResource( 5 )
-max_pickups = 5
 AmmoPickupScene = ExtResource( 6 )
+max_pickups = 5
 
 [node name="HealthSpawnPoints" type="Node2D" parent="."]
 
@@ -368,8 +368,8 @@ position = Vector2( 1296, 976 )
 
 [node name="HealthSpawner" type="Node2D" parent="."]
 script = ExtResource( 7 )
-max_pickups = 4
 HealthPickupScene = ExtResource( 8 )
+max_pickups = 4
 
 [connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/PlayAgainBtn" to="." method="_on_PlayAgainBtn_pressed"]
 [connection signal="pressed" from="UI/GameOverScreen/Center/Card/Margin/VBox/ButtonRow/MainMenuBtn" to="." method="_on_MainMenuBtn_pressed"]
