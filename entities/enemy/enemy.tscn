@@ -19,5 +19,5 @@ polygon = PoolVector2Array( -15, -15, 15, -15, 15, 15, -15, 15 )
 color = Color( 0.95, 0.95, 0.95, 1 )
 polygon = PoolVector2Array( 20, -5, 45, 0, 20, 5 )
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." groups=["enemy"]]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )

@@ -33,6 +33,10 @@ var _avoid_dir = Vector2.ZERO
 var _strafe_dir = 1
 var _strafe_timer = 0.0
 var _alerted = false
+var is_blinded = false
+
+var _wander_dir = Vector2.ZERO
+var _wander_timer = 0.0
 
 var show_fov = false
 
@@ -58,12 +62,16 @@ func _physics_process(delta):
 	shoot_timer -= delta
 	_strafe_timer -= delta
 
+	if is_blinded:
+		wander(delta)
+		return
 	if can_see_player():
+		_alerted = true
 		chase_and_attack(delta)
 	elif _alerted:
 		seek_player(delta)
 	else:
-		seek_player(delta)
+		wander(delta)
 
 
 func seek_player(delta):
@@ -142,6 +150,16 @@ func chase_and_attack(delta):
 	if shoot_timer <= 0:
 		shoot_at_player()
 		shoot_timer = shoot_cooldown
+
+func wander(delta):
+	_wander_timer -= delta
+	if _wander_timer <= 0.0 or get_slide_count() > 0:
+		_wander_timer = rand_range(1.2, 2.8)
+		var angle = rand_range(0.0, TAU)
+		_wander_dir = Vector2(cos(angle), sin(angle))
+	rotation = lerp_angle(rotation, _wander_dir.angle(), delta * 3.0)
+	move_and_slide(_wander_dir * search_speed * 0.55)
+
 
 func can_see_player() -> bool:
 	var to_player = player.global_position - global_position

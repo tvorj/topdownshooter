@@ -33,13 +33,22 @@ var shoot_timer = 0.0
 var is_dead = false
 var _fov_points := PoolVector2Array()
 
-# --- Scan ability ---
+# --- Scan ability (E) ---
 const ABILITY_DURATION = 5.0
 const ABILITY_COOLDOWN = 10.0
 var ability_active = false
 var ability_timer = 0.0
 var ability_cooldown_timer = 0.0
 var _ability_key_was_pressed = false
+
+# --- Blind ability (Q) ---
+const ABILITY2_DURATION = 5.0
+const ABILITY2_COOLDOWN = 10.0
+var ability2_active = false
+var ability2_timer = 0.0
+var ability2_cooldown_timer = 0.0
+var _ability2_key_was_pressed = false
+var _ability2_saved = []
 
 # --- Stats ---
 var stats = {
@@ -136,6 +145,21 @@ func _process(delta):
 		ability_active = true
 		ability_timer = ABILITY_DURATION
 	_ability_key_was_pressed = e_now
+
+	if ability2_active:
+		ability2_timer -= delta
+		if ability2_timer <= 0.0:
+			ability2_active = false
+			ability2_cooldown_timer = ABILITY2_COOLDOWN
+			_ability2_restore()
+	elif ability2_cooldown_timer > 0.0:
+		ability2_cooldown_timer -= delta
+	var q_now = Input.is_key_pressed(KEY_Q)
+	if q_now and not _ability2_key_was_pressed and not ability2_active and ability2_cooldown_timer <= 0.0:
+		ability2_active = true
+		ability2_timer = ABILITY2_DURATION
+		_ability2_apply()
+	_ability2_key_was_pressed = q_now
 
 	_update_fov_polygon()
 	update()
@@ -481,12 +505,59 @@ func die():
 		return
 
 	is_dead = true
+	if ability2_active:
+		ability2_active = false
+		_ability2_restore()
 
 	var world = get_parent()
 	if world and world.has_method("on_player_died"):
 		world.on_player_died(self)
 
 	set_physics_process(false)
+
+
+# --- Blind ability helpers ---
+
+func _ability2_apply():
+	_ability2_saved = []
+	for t in get_tree().get_nodes_in_group("enemy"):
+		if t.get("vision_angle") == null:
+			continue
+		_ability2_saved.append({
+			"node": t,
+			"vision_angle": t.vision_angle,
+			"vision_distance": t.vision_distance,
+			"is_blinded": true,
+		})
+		t.vision_angle = int(t.vision_angle * 0.35)
+		t.vision_distance = 80
+		t.is_blinded = true
+	for p in get_tree().get_nodes_in_group("player"):
+		if p == self:
+			continue
+		_ability2_saved.append({
+			"node": p,
+			"vision_angle": p.vision_angle,
+			"vision_distance": p.vision_distance,
+			"infinite_vision": p.infinite_vision,
+		})
+		p.vision_angle = int(p.vision_angle * 0.35)
+		p.vision_distance = int(p.vision_distance * 0.15)
+		p.infinite_vision = false
+
+
+func _ability2_restore():
+	for entry in _ability2_saved:
+		var t = entry.node
+		if not is_instance_valid(t):
+			continue
+		t.vision_angle = entry.vision_angle
+		t.vision_distance = entry.vision_distance
+		if entry.has("infinite_vision"):
+			t.infinite_vision = entry.infinite_vision
+		if entry.has("is_blinded"):
+			t.is_blinded = false
+	_ability2_saved = []
 
 
 # --- Vision / FOV ---
